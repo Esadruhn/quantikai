@@ -120,6 +120,6 @@ class Board:
                     try:
                         self._check_move_is_valid(x, y, pawn, color)
                         return True
-                    except:
+                    except InvalidMoveError:
                         pass
         return False
