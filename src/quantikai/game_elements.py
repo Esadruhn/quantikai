@@ -49,9 +49,14 @@ class Board:
         return self._move_is_a_win(x,y)
     
     def print(self):
-        upper_separator = " ____ "*NB_CELLS + "  " + "____  "*NB_CELLS +"\n"
-        str_board = upper_separator
+        upper_idx = "  "
+        for x in range(0,NB_CELLS*2):
+            upper_idx += "   " + str(x) + "  "
+        upper_idx += "\n"
+        upper_separator = "  " + " ____ "*NB_CELLS + "  " + "____  "*NB_CELLS +"\n"
+        str_board = upper_idx + upper_separator
         for i in range(NB_CELLS*2):
+            str_board += str(i) + " "
             for j in range(NB_CELLS*2):
                 if self.board[i][j]: 
                     str_board += self._ctxt("|__" + self.board[i][j][0].value + "_|", self.board[i][j][1])
@@ -88,28 +93,28 @@ class Board:
         return txt
 
     def _row_win(self, x: int):
-        others = list()
+        others = set()
         for element in self.board[x]:
             if not element or element[0] in others:
                 return False
-            others.append(element[0])
+            others.add(element[0])
         return True
 
     def _column_win(self, y:int):
-        others = list()
+        others = set()
         for row in self.board:
             if not row[y] or row[y][0] in others:
                 return False
-            others.append(row[y][0])
+            others.add(row[y][0])
         return True
 
     def _section_win(self, x: int, y: int):
-        others = list()
-        for row in self.board[x  // NB_CELLS: x  // NB_CELLS + NB_CELLS]:
-            for element in row[y  // NB_CELLS: y  // NB_CELLS + NB_CELLS]:
+        others = set()
+        for row in self.board[NB_CELLS*(x  // NB_CELLS): NB_CELLS*(x  // NB_CELLS + 1)]:
+            for element in row[NB_CELLS*(y  // NB_CELLS): NB_CELLS*(y  // NB_CELLS + 1)]:
                 if not element or element[0] in others:
                     return False
-                others.append(element[0])
+                others.add(element[0])
         return True
 
     def have_possible_move(self, color: Colors):
@@ -120,6 +125,6 @@ class Board:
                     try:
                         self._check_move_is_valid(x, y, pawn, color)
                         return True
-                    except:
+                    except InvalidMoveError:
                         pass
         return False

@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 
-"""Tests for `quantikai` package."""
-
+"""Tests for `game_elements` package."""
 import pytest
 
 
-from quantikai.game_elements import Board, Pawns, Colors, InvalidMoveError, InvalidMoveError
+from quantikai.game_elements import Board, Pawns, Colors, InvalidMoveError
 
 
 @pytest.fixture
@@ -66,6 +65,15 @@ def test_board_column_win(fixture_board_win):
 
 def test_board_section_win(fixture_board_win):
     assert fixture_board_win.play(1,1,Pawns.B,Colors.BLUE)
+
+def test_board_section_bottom_right_win():
+    board = Board(board=[
+            [(Pawns.B, Colors.RED), (Pawns.A, Colors.RED), (Pawns.B, Colors.RED), None],
+            [None, None, None, None],
+            [None, None, (Pawns.A, Colors.BLUE), (Pawns.B, Colors.BLUE)],
+            [None, None, None, (Pawns.D, Colors.BLUE)]
+        ])
+    assert board.play(3,2,Pawns.C,Colors.BLUE)
 
 def test_play():
     board = Board()
