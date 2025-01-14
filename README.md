@@ -2,12 +2,11 @@
 QuantikAI
 =========
 
-
 Play Quantik with an AI
 
 DISCLAIMER: Quantik is a Gigamic game, I am in no way affiliated with Gigamic, played the game at Xmas and wanted to implement it.
 
-The game is playable either between two humans or against a bot. The bot is beatable.
+The game is playable either between two humans or against a bot.
 
 
 * Free software: MIT license
@@ -20,6 +19,12 @@ How to install
         pip install -r requirements_dev.txt
         pip install -e .
         python src/quantikai/cli.py --help
+
+        # Play against a bot
+        python src/quantikai/cli.py bot
+
+        # 2 humans
+        python src/quantikai/cli.py human
 ```
 
 Credits

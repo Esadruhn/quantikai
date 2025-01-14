@@ -31,11 +31,11 @@ class Player:
         if not pawn in self.pawns:
             raise InvalidMoveError("You do not have this pawn.")
 
-    def print_pawns(self):
+    def get_printable_list_pawns(self):
         t = ""
         for pawn in self.pawns:
             t += pawn.value + " "
-        print("Player " + self.color.name + " available pawns: " + t)
+        return "Player " + self.color.name + " available pawns: " + t
 
 @dataclass
 class Board:
@@ -80,8 +80,8 @@ class Board:
             if row[y] and row[y][0] == pawn and row[y][1] != player:
                 raise InvalidMoveError("there is an opponent's pawn in that column")
         # check section
-        for row in self.board[x  // NB_CELLS: x  // NB_CELLS + NB_CELLS]:
-            for element in row[y  // NB_CELLS: y  // NB_CELLS + NB_CELLS]:
+        for row in self.board[NB_CELLS*(x  // NB_CELLS): NB_CELLS*(x  // NB_CELLS + 1)]:
+            for element in row[NB_CELLS*(y  // NB_CELLS): NB_CELLS*(y  // NB_CELLS + 1)]:
                 if element and element[0] == pawn and element[1] != player:
                     raise InvalidMoveError("there is an opponent's pawn in that section")
                 

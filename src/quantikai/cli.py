@@ -2,6 +2,7 @@
 import typer
 from rich.console import Console
 import itertools
+import random
 
 from quantikai import game_elements, minmax
 
@@ -34,10 +35,10 @@ def init_game():
     return board, player_cycle
 
 def human_player_loop(board, player):
-    player.print_pawns()
+    pawn_list = player.get_printable_list_pawns()
     x, y, pawn = None, None, None
     while(1):
-        user_input = input("Player " + player.color.name + ", please play\n")
+        user_input = input("Player " + player.color.name + ", please play (" + pawn_list + ")\n")
         try:
             x, y, pawn = parse_input(user_input)
             break
@@ -82,6 +83,19 @@ def bot():
 
     print("Welcome to the Quantik game!")
     print("Example of a valid first move: 0 0 A\n")
+    
+    user_input = input("Do you want to start (\033[1myes\033[0m/no)? ")
+    answer = user_input.strip() == "" or user_input.strip() == "yes"
+    if not answer:
+        player = next(player_cycle)
+        # The 1st move takes too much time to compute
+        # Random move is OK, adds more fun for the player
+        random.seed()
+        pawn =  list(game_elements.Pawns)[random.randrange(4)]
+        board.play(random.randrange(4), random.randrange(4), pawn, player.color)
+        player.remove(pawn)
+        board.print()
+        player = next(player_cycle)
 
     while(1):
         try:
@@ -117,7 +131,7 @@ def rules():
     """How to play"""
     print("""
           Welcome to Quantik, a game edited by Gigamic (I am not affiliated in any way with the editor).
-          It is played by two players (BLUE and RED) on a 8*8 board, divided into 4 sections.
+          It is played by two players (BLUE and RED) on a 4*4 board, divided into 4 sections.
           Each player has 8 pawns, two of each type: A, A, B, B, C, C, D, D
           A player wins when he completes a row, column or section with 4 different pawns no matter their color.
           If it is not possible to play any pawn then the player loses.
