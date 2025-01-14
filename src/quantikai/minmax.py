@@ -19,7 +19,6 @@ def _get_best_move_terminal(player_max: Colors, moves_to_test: list[tuple[Board,
     If the move does not end the party, None score
 
     If all moves have a score, return the move with the maximum score
-    TODO: check that the assert is never triggered, we expect that this happens only when evaluating the maximizer next possible move
 
     Using terminal recursivity for performance
 
@@ -57,6 +56,7 @@ def _get_best_move_terminal(player_max: Colors, moves_to_test: list[tuple[Board,
                         if is_a_win:
                             # no need to compute other moves, the perfect player plays this
                             move_score = 10 if player_max == current_player.color else -10
+                            if move_score == 10: return child_move
                             move_children = [(current_board, other_player, player, child_move, move_score)]
                             ok = False
                             break
@@ -68,12 +68,12 @@ def _get_best_move_terminal(player_max: Colors, moves_to_test: list[tuple[Board,
         # End case if no possible child move: it is a loss for the current player
         if len(move_children) == 0:
             move_score = -10 if player_max == current_player.color else 10
+            if move_score == 10: return child_move
             move_children = [(current_board, other_player, player, move, move_score)]
 
         new_moves_to_test += move_children
 
     if len(new_moves_to_test) == 0:
-        assert current_player.color == player_max, "We should be at the maximizer's turn."
         return best_move
 
     return _get_best_move_terminal(player_max, new_moves_to_test)
