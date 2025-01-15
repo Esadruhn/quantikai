@@ -41,4 +41,8 @@ This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypack
 Timing
 ------
 
-Timeit - 10 iterations of botvsbot: 15.683639091999794s - commit testais 5a4e9f2
+```bash
+        # Play against a bot
+        python src/quantikai/cli.py timer
+```
+for 10 iterations of bot vs bot, shows average time

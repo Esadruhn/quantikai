@@ -173,9 +173,8 @@ def botvsbot():
             if move is None:
                 print("Player " + player.color.name + " gives up and loses.")
                 break
-            (x, y, pawn) = move
-            is_a_win = board.play(x, y, pawn, player.color)
-            player.remove(pawn)
+            is_a_win = board.play(*move)
+            player.remove(move[2])
             board.print()
 
             if is_a_win:
