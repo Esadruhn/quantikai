@@ -1,8 +1,10 @@
 """Main module."""
+
 from enum import Enum
 from dataclasses import dataclass, field
 
 NB_CELLS = 2
+
 
 class Pawns(Enum):
     A = "A"
@@ -10,18 +12,23 @@ class Pawns(Enum):
     C = "C"
     D = "D"
 
+
 class Colors(Enum):
     BLUE = "\033[44m"
     RED = "\033[41m"
+
 
 class InvalidMoveError(Exception):
     def __init__(self, message):
         super().__init__(message)
 
+
 @dataclass
 class Player:
     color: Colors
-    pawns: list[Pawns] = field(default_factory=lambda:NB_CELLS*[pawn for pawn in Pawns])
+    pawns: list[Pawns] = field(
+        default_factory=lambda: NB_CELLS * [pawn for pawn in Pawns]
+    )
 
     def remove(self, pawn: Pawns):
         self.check_has_pawn(pawn)
@@ -37,46 +44,52 @@ class Player:
             t += pawn.value + " "
         return "Player " + self.color.name + " available pawns: " + t
 
+
 @dataclass
 class Board:
-    board: list[list[tuple[Pawns, Colors]]] = field(default_factory=lambda: [[None for _ in range(4)] for _ in range(4)])
+    board: list[list[tuple[Pawns, Colors]]] = field(
+        default_factory=lambda: [[None for _ in range(4)] for _ in range(4)]
+    )
 
     # Optimization: make it easier to spot possible moves
-    _rows = field(default_factory=lambda: [set() for _ in range(4)])
-    _columns = field(default_factory=lambda: [set() for _ in range(4)])
-    # Sections: 
-    # 0 1 
+    _rows: list[set] = field(default_factory=lambda: [set() for _ in range(4)])
+    _columns: list[set] = field(default_factory=lambda: [set() for _ in range(4)])
+    # Sections:
+    # 0 1
     # 2 3
-    _sections = field(default_factory=lambda: [set() for _ in range(4)])
-
+    _sections: list[set] = field(default_factory=lambda: [set() for _ in range(4)])
 
     def play(self, x: int, y: int, pawn: Pawns, color: Colors):
         pawn = Pawns(pawn)
         color = Colors(color)
         self._check_move_is_valid(x, y, pawn, color)
         self.board[x][y] = (pawn, color)
-        return self._move_is_a_win(x,y)
-    
+        return self._move_is_a_win(x, y)
+
     def print(self):
         upper_idx = "  "
-        for x in range(0,NB_CELLS*2):
+        for x in range(0, NB_CELLS * 2):
             upper_idx += "   " + str(x) + "  "
         upper_idx += "\n"
-        upper_separator = "  " + " ____ "*NB_CELLS + "  " + "____  "*NB_CELLS +"\n"
+        upper_separator = "  " + " ____ " * NB_CELLS + "  " + "____  " * NB_CELLS + "\n"
         str_board = upper_idx + upper_separator
-        for i in range(NB_CELLS*2):
+        for i in range(NB_CELLS * 2):
             str_board += str(i) + " "
-            for j in range(NB_CELLS*2):
-                if self.board[i][j]: 
-                    str_board += self._ctxt("|__" + self.board[i][j][0].value + "_|", self.board[i][j][1])
+            for j in range(NB_CELLS * 2):
+                if self.board[i][j]:
+                    str_board += self._ctxt(
+                        "|__" + self.board[i][j][0].value + "_|", self.board[i][j][1]
+                    )
                 else:
                     str_board += "|____|"
-                if j+1 == NB_CELLS: str_board += " "
+                if j + 1 == NB_CELLS:
+                    str_board += " "
             str_board += "\n"
-            if i+1 == NB_CELLS: str_board += upper_separator
-            
+            if i + 1 == NB_CELLS:
+                str_board += upper_separator
+
         print(str_board)
-    
+
     def have_possible_move(self, color: Colors):
         for x, row in enumerate(self.board):
             for y, _ in enumerate(row):
@@ -90,7 +103,9 @@ class Board:
 
     def _check_move_is_valid(self, x: int, y: int, pawn: Pawns, player: Colors):
         if x < 0 or y < 0 or x >= len(self.board) or y >= len(self.board[0]):
-            raise InvalidMoveError("x and y must be between 0 and " + str(NB_CELLS*NB_CELLS))
+            raise InvalidMoveError(
+                "x and y must be between 0 and " + str(NB_CELLS * NB_CELLS)
+            )
         if self.board[x][y]:
             raise InvalidMoveError("already a pawn there")
         for element in self.board[x]:
@@ -100,16 +115,23 @@ class Board:
             if row[y] and row[y][0] == pawn and row[y][1] != player:
                 raise InvalidMoveError("there is an opponent's pawn in that column")
         # check section
-        for row in self.board[NB_CELLS*(x  // NB_CELLS): NB_CELLS*(x  // NB_CELLS + 1)]:
-            for element in row[NB_CELLS*(y  // NB_CELLS): NB_CELLS*(y  // NB_CELLS + 1)]:
+        for row in self.board[
+            NB_CELLS * (x // NB_CELLS) : NB_CELLS * (x // NB_CELLS + 1)
+        ]:
+            for element in row[
+                NB_CELLS * (y // NB_CELLS) : NB_CELLS * (y // NB_CELLS + 1)
+            ]:
                 if element and element[0] == pawn and element[1] != player:
-                    raise InvalidMoveError("there is an opponent's pawn in that section")
-                
-    def _move_is_a_win(self, x: int, y: int):
-        return self._row_win(x) or self._column_win(y) or self._section_win(x,y)
+                    raise InvalidMoveError(
+                        "there is an opponent's pawn in that section"
+                    )
 
-    def _ctxt(self, txt: str, color: Colors=None) -> str:
-        if color: txt = color.value + txt + "\033[0m"
+    def _move_is_a_win(self, x: int, y: int):
+        return self._row_win(x) or self._column_win(y) or self._section_win(x, y)
+
+    def _ctxt(self, txt: str, color: Colors = None) -> str:
+        if color:
+            txt = color.value + txt + "\033[0m"
         return txt
 
     def _row_win(self, x: int):
@@ -120,7 +142,7 @@ class Board:
             others.add(element[0])
         return True
 
-    def _column_win(self, y:int):
+    def _column_win(self, y: int):
         others = set()
         for row in self.board:
             if not row[y] or row[y][0] in others:
@@ -130,19 +152,25 @@ class Board:
 
     def _section_win(self, x: int, y: int):
         others = set()
-        for row in self.board[NB_CELLS*(x  // NB_CELLS): NB_CELLS*(x  // NB_CELLS + 1)]:
-            for element in row[NB_CELLS*(y  // NB_CELLS): NB_CELLS*(y  // NB_CELLS + 1)]:
+        for row in self.board[
+            NB_CELLS * (x // NB_CELLS) : NB_CELLS * (x // NB_CELLS + 1)
+        ]:
+            for element in row[
+                NB_CELLS * (y // NB_CELLS) : NB_CELLS * (y // NB_CELLS + 1)
+            ]:
                 if not element or element[0] in others:
                     return False
                 others.add(element[0])
         return True
-    
+
     def _add_to_optimized(self, x, y, pawn):
         self._rows[x].add(pawn)
         self._columns[y].add(pawn)
         section_idx = 0
-        if x < 2 and y > 1: section_idx = 2 
-        if x > 1 and y < 2: section_idx = 1
-        if x > 1 and y > 1: section_idx = 3
+        if x < 2 and y > 1:
+            section_idx = 2
+        if x > 1 and y < 2:
+            section_idx = 1
+        if x > 1 and y > 1:
+            section_idx = 3
         self._section[section_idx].add(pawn)
-
