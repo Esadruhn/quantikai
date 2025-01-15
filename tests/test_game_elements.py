@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 """Tests for `game_elements` package."""
+from click import BadParameter
 import pytest
 
 
@@ -268,3 +269,78 @@ def test_no_valid_move():
         ]
     )
     assert not board.have_possible_move(Colors.RED)
+
+
+def test_get_possible_moves():
+    board = Board(
+        board=[
+            [None, (Pawns.A, Colors.RED), None, None],
+            [None, None, None, None],
+            [None, None, (Pawns.A, Colors.BLUE), None],
+            [None, None, None, (Pawns.B, Colors.RED)],
+        ]
+    )
+    moves = board.get_possible_moves([Pawns.A], color=Colors.BLUE)
+    assert moves == {
+        (1, 2, Pawns.A, Colors.BLUE),
+        (1, 3, Pawns.A, Colors.BLUE),
+        (2, 0, Pawns.A, Colors.BLUE),
+        (2, 3, Pawns.A, Colors.BLUE),
+        (3, 0, Pawns.A, Colors.BLUE),
+        (3, 2, Pawns.A, Colors.BLUE),
+    }
+
+
+def test_get_possible_moves_pawns():
+    board = Board(
+        board=[
+            [None, (Pawns.A, Colors.RED), None, None],
+            [None, None, None, None],
+            [None, None, (Pawns.A, Colors.BLUE), None],
+            [None, None, None, (Pawns.B, Colors.RED)],
+        ]
+    )
+    moves = board.get_possible_moves([Pawns.A, Pawns.B], color=Colors.BLUE)
+    a_moves = {
+        (1, 2, Pawns.A, Colors.BLUE),
+        (1, 3, Pawns.A, Colors.BLUE),
+        (2, 0, Pawns.A, Colors.BLUE),
+        (2, 3, Pawns.A, Colors.BLUE),
+        (3, 0, Pawns.A, Colors.BLUE),
+        (3, 2, Pawns.A, Colors.BLUE),
+    }
+    b_moves = {
+        (0, 0, Pawns.B, Colors.BLUE),
+        (0, 2, Pawns.B, Colors.BLUE),
+        (1, 0, Pawns.B, Colors.BLUE),
+        (1, 1, Pawns.B, Colors.BLUE),
+        (1, 2, Pawns.B, Colors.BLUE),
+        (2, 0, Pawns.B, Colors.BLUE),
+        (2, 1, Pawns.B, Colors.BLUE),
+    }
+    assert moves == a_moves | b_moves
+
+
+def test_get_possible_move_edge_case():
+    board = Board(
+        [
+            [
+                (Pawns.A, Colors.BLUE),
+                (Pawns.B, Colors.BLUE),
+                (Pawns.C, Colors.BLUE),
+                None,
+            ],
+            [(Pawns.C, Colors.RED), (Pawns.C, Colors.RED), None, (Pawns.A, Colors.RED)],
+            [
+                (Pawns.B, Colors.BLUE),
+                (Pawns.D, Colors.RED),
+                (Pawns.A, Colors.BLUE),
+                (Pawns.D, Colors.RED),
+            ],
+            [None, None, (Pawns.C, Colors.BLUE), None],
+        ]
+    )
+    board.print()
+    move = (3, 0, Pawns.D, Colors.BLUE)
+    moves = board.get_possible_moves([Pawns.D], Colors.BLUE)
+    assert move not in moves

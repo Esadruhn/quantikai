@@ -52,7 +52,7 @@ def test_best_move_last():
         ],
     )
     best_move = minmax.get_best_move(board, blue_player, red_player)
-    assert best_move == (0, 3, Pawns.D)
+    assert best_move == (0, 3, Pawns.D, Colors.BLUE)
 
 
 def test_best_move_none():

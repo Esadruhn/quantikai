@@ -135,7 +135,7 @@ def bot():
                 if move is None:
                     print("Player " + player.color.name + " gives up and loses.")
                     break
-                (x, y, pawn) = move
+                (x, y, pawn, _) = move
                 is_a_win = board.play(x, y, pawn, player.color)
                 player.remove(pawn)
                 board.print()
