@@ -13,6 +13,9 @@ The game is playable either between two humans or against a bot.
 
 How to install
 ---------------
+
+Tested on Linux with Python 3.12
+
 ```bash
         git clone git@github.com:Esadruhn/quantikai.git
         cd quantikai

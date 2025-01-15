@@ -344,3 +344,51 @@ def test_get_possible_move_edge_case():
     move = (3, 0, Pawns.D, Colors.BLUE)
     moves = board.get_possible_moves([Pawns.D], Colors.BLUE)
     assert move not in moves
+
+
+def test_get_possible_moves_optimize_empty_board():
+    board = Board()
+    moves = board.get_possible_moves(
+        pawns=list(Pawns), color=Colors.BLUE, optimize=True
+    )
+    assert moves == {
+        (0, 0, Pawns.A, Colors.BLUE),
+        (0, 1, Pawns.A, Colors.BLUE),
+        (1, 0, Pawns.A, Colors.BLUE),
+        (1, 1, Pawns.A, Colors.BLUE),
+    }
+
+
+def test_get_possible_moves_optimize_one():
+    board = Board()
+    board.play(0, 0, Pawns.A, Colors.RED)
+    moves = board.get_possible_moves(
+        pawns=list(Pawns), color=Colors.BLUE, optimize=True
+    )
+    same_pawn_moves = {
+        (2, 1, Pawns.A, Colors.BLUE),
+        (3, 1, Pawns.A, Colors.BLUE),
+        (2, 2, Pawns.A, Colors.BLUE),
+        (2, 3, Pawns.A, Colors.BLUE),
+        (3, 2, Pawns.A, Colors.BLUE),
+        (3, 3, Pawns.A, Colors.BLUE),
+    }
+    assert same_pawn_moves.issubset(moves)
+    other_pawn_moves = moves - same_pawn_moves
+    positions = {(x, y) for (x, y, _, _) in other_pawn_moves}
+    assert positions == {
+        # bottom left section
+        (2, 0),
+        (2, 1),
+        (3, 0),
+        (3, 1),
+        # upper left section
+        (0, 1),
+        (1, 0),
+        (1, 1),
+        # bottom right section
+        (2, 2),
+        (2, 3),
+        (3, 2),
+        (3, 3),
+    }

@@ -1,6 +1,8 @@
 """Tests for `minmax` package."""
 
+from re import A
 import pytest
+import time
 
 
 from quantikai.game_elements import Board, Pawns, Colors, Player
@@ -175,3 +177,82 @@ def test_best_move_1():
     )
     best_move = minmax.get_best_move(board, red_player, blue_player)
     assert best_move != (2, 3, Pawns.B)
+
+
+@pytest.mark.skip("takes too long")
+def test_minmax_time_3():
+    board = Board(
+        board=[
+            [(Pawns.A, Colors.BLUE), None, None, None],
+            [None, None, None, None],
+            [None, (Pawns.B, Colors.RED), None, None],
+            [None, (Pawns.C, Colors.BLUE), None, None],
+        ]
+    )
+    blue_player = Player(
+        color=Colors.BLUE,
+        pawns=[
+            Pawns.A,
+            Pawns.A,
+            Pawns.B,
+            Pawns.B,
+            Pawns.C,
+            Pawns.D,
+            Pawns.D,
+        ],
+    )
+    red_player = Player(
+        color=Colors.RED,
+        pawns=[
+            Pawns.A,
+            Pawns.A,
+            Pawns.B,
+            Pawns.C,
+            Pawns.C,
+            Pawns.D,
+            Pawns.D,
+        ],
+    )
+    start = time.time()
+    minmax.get_best_move(board, red_player, blue_player)
+    end = time.time()
+    assert end - start < 5
+
+
+@pytest.mark.skip("takes too long, 34s")
+def test_minmax_time_4():
+    board = Board(
+        board=[
+            [(Pawns.A, Colors.BLUE), None, None, None],
+            [None, None, (Pawns.D, Colors.RED), None],
+            [None, (Pawns.B, Colors.RED), None, None],
+            [None, (Pawns.C, Colors.BLUE), None, None],
+        ]
+    )
+    blue_player = Player(
+        color=Colors.BLUE,
+        pawns=[
+            Pawns.A,
+            Pawns.A,
+            Pawns.B,
+            Pawns.B,
+            Pawns.C,
+            Pawns.D,
+            Pawns.D,
+        ],
+    )
+    red_player = Player(
+        color=Colors.RED,
+        pawns=[
+            Pawns.A,
+            Pawns.A,
+            Pawns.B,
+            Pawns.C,
+            Pawns.C,
+            Pawns.D,
+        ],
+    )
+    start = time.time()
+    minmax.get_best_move(board, blue_player, red_player)
+    end = time.time()
+    assert end - start < 5
