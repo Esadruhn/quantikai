@@ -59,11 +59,21 @@ class Board:
     # 2 3
     _sections: list[set] = field(default_factory=lambda: [set() for _ in range(4)])
 
+    def __post_init__(self):
+        for x in range(len(self.board)):
+            for y in range(len(self.board)):
+                if self.board[x][y] is not None:
+                    self._rows[x].add(self.board[x][y])
+                    self._columns[y].add(self.board[x][y])
+                    sec_idx = self._get_section_idx(x,y)
+                    self._sections[sec_idx].add(self.board[x][y])
+
     def play(self, x: int, y: int, pawn: Pawns, color: Colors):
         pawn = Pawns(pawn)
         color = Colors(color)
         self._check_move_is_valid(x, y, pawn, color)
         self.board[x][y] = (pawn, color)
+        self._add_to_optimized(x,y,pawn, color)
         return self._move_is_a_win(x, y)
 
     def print(self):
@@ -100,6 +110,20 @@ class Board:
                     except InvalidMoveError:
                         pass
         return False
+    
+    def get_possible_moves(self, pawns: list[Pawns], color: Colors) -> set[tuple[int, int, Pawns, Colors]]:
+        moves = {(x, y, pawn, color) for x in range(len(self.board)) for y in range(len(self.board)) for pawn in pawns}
+        opponent_color = [c for c in Colors if c != color][0]
+        for x in range(len(self.board)):
+            for y in range(len(self.board)):
+                if self.board[x][y]:
+                    moves -= {(x,y,pawn) for pawn in pawns}
+                    if self.board[x][y][1] == opponent_color:
+                        moves -= {(i,y, pawn, color) for i in range(len(self.board)) for pawn in pawns}
+                        moves -= {(x,j, pawn, color) for j in range(len(self.board)) for pawn in pawns}
+                        section_idxs = self._get_section_idxs(self._get_section_idx(x,y))
+                        moves -= {(i,j,pawn, color) for i,j in section_idxs for pawn in pawns}
+        return moves
 
     def _check_move_is_valid(self, x: int, y: int, pawn: Pawns, player: Colors):
         if x < 0 or y < 0 or x >= len(self.board) or y >= len(self.board[0]):
@@ -108,24 +132,17 @@ class Board:
             )
         if self.board[x][y]:
             raise InvalidMoveError("already a pawn there")
-        for element in self.board[x]:
-            if element and element[0] == pawn and element[1] != player:
-                raise InvalidMoveError("there is an opponent's pawn in that row")
-        for row in self.board:
-            if row[y] and row[y][0] == pawn and row[y][1] != player:
-                raise InvalidMoveError("there is an opponent's pawn in that column")
-        # check section
-        for row in self.board[
-            NB_CELLS * (x // NB_CELLS) : NB_CELLS * (x // NB_CELLS + 1)
-        ]:
-            for element in row[
-                NB_CELLS * (y // NB_CELLS) : NB_CELLS * (y // NB_CELLS + 1)
-            ]:
-                if element and element[0] == pawn and element[1] != player:
-                    raise InvalidMoveError(
-                        "there is an opponent's pawn in that section"
-                    )
 
+        opponent_color = [c for c in Colors if c != player][0]
+        if (pawn, opponent_color) in self._rows[x]:
+            raise InvalidMoveError("there is an opponent's pawn in that row")
+        if (pawn, opponent_color) in self._columns[y]:
+            raise InvalidMoveError("there is an opponent's pawn in that column")
+        
+        section_idx = self._get_section_idx(x,y)
+        if (pawn, opponent_color) in self._sections[section_idx]:
+            raise InvalidMoveError("there is an opponent's pawn in that section")
+        
     def _move_is_a_win(self, x: int, y: int):
         return self._row_win(x) or self._column_win(y) or self._section_win(x, y)
 
@@ -135,37 +152,16 @@ class Board:
         return txt
 
     def _row_win(self, x: int):
-        others = set()
-        for element in self.board[x]:
-            if not element or element[0] in others:
-                return False
-            others.add(element[0])
-        return True
+        return len(self._rows[x]) == len(Pawns)
 
     def _column_win(self, y: int):
-        others = set()
-        for row in self.board:
-            if not row[y] or row[y][0] in others:
-                return False
-            others.add(row[y][0])
-        return True
+        return len(self._columns[y]) == len(Pawns)
 
     def _section_win(self, x: int, y: int):
-        others = set()
-        for row in self.board[
-            NB_CELLS * (x // NB_CELLS) : NB_CELLS * (x // NB_CELLS + 1)
-        ]:
-            for element in row[
-                NB_CELLS * (y // NB_CELLS) : NB_CELLS * (y // NB_CELLS + 1)
-            ]:
-                if not element or element[0] in others:
-                    return False
-                others.add(element[0])
-        return True
+        section_idx = self._get_section_idx(x,y)
+        return len(self._sections[section_idx]) == len(Pawns)
 
-    def _add_to_optimized(self, x, y, pawn):
-        self._rows[x].add(pawn)
-        self._columns[y].add(pawn)
+    def _get_section_idx(self, x: int, y:int) -> int:
         section_idx = 0
         if x < 2 and y > 1:
             section_idx = 2
@@ -173,4 +169,20 @@ class Board:
             section_idx = 1
         if x > 1 and y > 1:
             section_idx = 3
-        self._section[section_idx].add(pawn)
+        return section_idx
+
+    def _get_section_idxs(self, section_idx: int) -> int:
+        if section_idx == 0:
+            return [(0,0),(0,1), (1,0), (1,1)]
+        if section_idx == 1:
+            return [(0,2),(0,3), (1,2), (1,3)]
+        if section_idx == 2:
+            return [(2,0),(2,1), (3,0), (3,1)]
+        if section_idx == 3:
+            return [(2,2),(2,3), (3,2), (3,3)]
+
+    def _add_to_optimized(self, x: int, y: int, pawn: Pawns, color: Colors):
+        self._rows[x].add((pawn, color))
+        self._columns[y].add((pawn, color))
+        section_idx = self._get_section_idx(x,y)
+        self._sections[section_idx].add((pawn, color))

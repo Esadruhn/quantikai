@@ -38,4 +38,4 @@ This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypack
 Timing
 ------
 
-Timeit - 10 iterations of botvsbot: 15.683639091999794s - commit 
+Timeit - 10 iterations of botvsbot: 15.683639091999794s - commit testais 5a4e9f2
