@@ -107,9 +107,7 @@ class Board:
         Args:
             pawns (list[Pawns]): _description_
             color (Colors): _description_
-            optimize (bool, optional): if True, does not return equivalent
-                moves (to optimize computation of the next best move).
-                Defaults to False.
+            optimize (bool, optional): if True, does not return equivalent moves (to optimize computation of the next best move). Defaults to False.
 
         Returns:
             set[tuple[int, int, Pawns, Colors]]: _description_

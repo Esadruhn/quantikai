@@ -1,6 +1,5 @@
 """Tests for `minmax` package."""
 
-from re import A
 import pytest
 import time
 
@@ -179,7 +178,6 @@ def test_best_move_1():
     assert best_move != (2, 3, Pawns.B)
 
 
-@pytest.mark.skip("takes too long")
 def test_minmax_time_3():
     board = Board(
         board=[
@@ -219,7 +217,6 @@ def test_minmax_time_3():
     assert end - start < 5
 
 
-@pytest.mark.skip("takes too long, 34s")
 def test_minmax_time_4():
     board = Board(
         board=[

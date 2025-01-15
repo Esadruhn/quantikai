@@ -19,8 +19,9 @@ Tested on Linux with Python 3.12
 ```bash
         git clone git@github.com:Esadruhn/quantikai.git
         cd quantikai
-        pip install -r requirements_dev.txt
-        pip install -e .
+        make install
+
+        # Get help
         python src/quantikai/cli.py --help
 
         # Play against a bot
@@ -29,14 +30,6 @@ Tested on Linux with Python 3.12
         # 2 humans
         python src/quantikai/cli.py human
 ```
-
-Credits
--------
-
-This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypackage`_ project template.
-
-- [Cookiecutter](https://github.com/audreyr/cookiecutter)
-- [`audreyr/cookiecutter-pypackage`](https://github.com/audreyr/cookiecutter-pypackage)
 
 Timing
 ------

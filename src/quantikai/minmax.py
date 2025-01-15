@@ -133,8 +133,11 @@ def montecarlo(
                 best_move = node.parent_move
                 n_visited = montecarlo.times_visited
                 winning_avg = montecarlo.score / montecarlo.times_visited
-    if winning_avg > 0.9:
-        print("I am going to win, oh yeah")
+    if winning_avg is not None:
+        if winning_avg < 0.5:
+            print("I don't like this move")
+        elif winning_avg > 0.9:
+            print("I am going to win, oh yeah")
     return (winning_avg, best_move)
 
 

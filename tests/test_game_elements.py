@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 """Tests for `game_elements` package."""
-from click import BadParameter
 import pytest
 
 
