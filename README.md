@@ -34,3 +34,8 @@ This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypack
 
 - [Cookiecutter](https://github.com/audreyr/cookiecutter)
 - [`audreyr/cookiecutter-pypackage`](https://github.com/audreyr/cookiecutter-pypackage)
+
+Timing
+------
+
+Timeit - 10 iterations of botvsbot: 15.683639091999794s - commit 

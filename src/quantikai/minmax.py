@@ -123,7 +123,7 @@ def _get_best_move_terminal(
         # End case if no possible child move: it is a loss for the current player
         if len(move_children) == 0:
             if player_max != current_player.color:
-                return child_move
+                return move
             move_children = [(current_board, other_player, player, move, -10)]
 
         new_moves_to_test += move_children

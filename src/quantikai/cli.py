@@ -4,6 +4,7 @@ import typer
 from rich.console import Console
 import itertools
 import random
+import timeit
 
 from quantikai import game_elements, minmax
 
@@ -153,7 +154,6 @@ def bot():
             break
 
 
-@app.command()
 def botvsbot():
     """Two bots playing"""
     board, player_cycle = init_game()
@@ -190,6 +190,11 @@ def botvsbot():
                 "Player " + player.color.name + " has no possible move left, he loses!"
             )
             break
+
+
+@app.command()
+def timer():
+    print(timeit.timeit(botvsbot, number=10))
 
 
 @app.command()
