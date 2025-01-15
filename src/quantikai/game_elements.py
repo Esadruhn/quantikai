@@ -46,6 +46,11 @@ class Player:
         return "Player " + self.color.name + " available pawns: " + t
 
 
+@dataclass(frozen=True, eq=True)
+class FrozenBoard:
+    board: tuple[tuple[Pawns, Colors]]
+
+
 @dataclass
 class Board:
     board: list[list[tuple[Pawns, Colors]]] = field(
@@ -121,14 +126,12 @@ class Board:
             if len(pawns_on_board) == 0:
                 # Only need to check for one pawn and one section because of symmetry
                 # Actually I am not even sure the first move matters
-                # return {
-                #     (0, 0, Pawns.A, color),
-                #     (0, 1, Pawns.A, color),
-                #     (1, 0, Pawns.A, color),
-                #     (1, 1, Pawns.A, color),
-                # }
-                # TODO: check if this makes sense
-                return {(1, 1, Pawns.A, color)}
+                return {
+                    (0, 0, Pawns.A, color),
+                    (0, 1, Pawns.A, color),
+                    (1, 0, Pawns.A, color),
+                    (1, 1, Pawns.A, color),
+                }
             # Case 2: 1 pawn on the board
             # Diagonal symmetry: both sections next to the played section are the same and in opposite section 2 cells are
             # the same
@@ -188,6 +191,14 @@ class Board:
                             for i, j in self._get_section_elements(x, y)
                         }
         return moves
+
+    def get_frozen(self) -> FrozenBoard:
+        return FrozenBoard(
+            tuple(
+                tuple(self.board[x][y] for y in range(len(self.board)))
+                for x in range(len(self.board))
+            )
+        )
 
     def _check_move_is_valid(self, x: int, y: int, pawn: Pawns, player: Colors):
         if x < 0 or y < 0 or x >= len(self.board) or y >= len(self.board[0]):
