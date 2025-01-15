@@ -13,11 +13,15 @@ The game is playable either between two humans or against a bot.
 
 How to install
 ---------------
+
+Tested on Linux with Python 3.12
+
 ```bash
         git clone git@github.com:Esadruhn/quantikai.git
         cd quantikai
-        pip install -r requirements_dev.txt
-        pip install -e .
+        make install
+
+        # Get help
         python src/quantikai/cli.py --help
 
         # Play against a bot
@@ -27,10 +31,11 @@ How to install
         python src/quantikai/cli.py human
 ```
 
-Credits
--------
+Timing
+------
 
-This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypackage`_ project template.
-
-- [Cookiecutter](https://github.com/audreyr/cookiecutter)
-- [`audreyr/cookiecutter-pypackage`](https://github.com/audreyr/cookiecutter-pypackage)
+```bash
+        # Play against a bot
+        python src/quantikai/cli.py timer
+```
+for 10 iterations of bot vs bot, shows average time

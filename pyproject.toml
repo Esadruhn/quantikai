@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "quantikai"
 version = "0.1.0"
 description = "Play Quantik with an AI"
-readme = "README.rst"
+readme = "README.md"
 authors = [
   {name = "Esadruhn"}
 ]
@@ -24,9 +24,9 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "coverage",  # testing
-    "mypy",  # linting
+    "black",  # linting
+    "flake8",  # linting
     "pytest",  # testing
-    "ruff"  # linting
 ]
 
 [project.urls]
