@@ -41,6 +41,15 @@ class Player:
 class Board:
     board: list[list[tuple[Pawns, Colors]]] = field(default_factory=lambda: [[None for _ in range(4)] for _ in range(4)])
 
+    # Optimization: make it easier to spot possible moves
+    _rows = field(default_factory=lambda: [set() for _ in range(4)])
+    _columns = field(default_factory=lambda: [set() for _ in range(4)])
+    # Sections: 
+    # 0 1 
+    # 2 3
+    _sections = field(default_factory=lambda: [set() for _ in range(4)])
+
+
     def play(self, x: int, y: int, pawn: Pawns, color: Colors):
         pawn = Pawns(pawn)
         color = Colors(color)
@@ -67,6 +76,17 @@ class Board:
             if i+1 == NB_CELLS: str_board += upper_separator
             
         print(str_board)
+    
+    def have_possible_move(self, color: Colors):
+        for x, row in enumerate(self.board):
+            for y, _ in enumerate(row):
+                for pawn in set(Pawns):
+                    try:
+                        self._check_move_is_valid(x, y, pawn, color)
+                        return True
+                    except InvalidMoveError:
+                        pass
+        return False
 
     def _check_move_is_valid(self, x: int, y: int, pawn: Pawns, player: Colors):
         if x < 0 or y < 0 or x >= len(self.board) or y >= len(self.board[0]):
@@ -116,15 +136,13 @@ class Board:
                     return False
                 others.add(element[0])
         return True
+    
+    def _add_to_optimized(self, x, y, pawn):
+        self._rows[x].add(pawn)
+        self._columns[y].add(pawn)
+        section_idx = 0
+        if x < 2 and y > 1: section_idx = 2 
+        if x > 1 and y < 2: section_idx = 1
+        if x > 1 and y > 1: section_idx = 3
+        self._section[section_idx].add(pawn)
 
-    def have_possible_move(self, color: Colors):
-        # TODO: test
-        for x, row in enumerate(self.board):
-            for y, _ in enumerate(row):
-                for pawn in Pawns:
-                    try:
-                        self._check_move_is_valid(x, y, pawn, color)
-                        return True
-                    except InvalidMoveError:
-                        pass
-        return False
