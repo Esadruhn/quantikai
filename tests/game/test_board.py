@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
-"""Tests for `game_elements` package."""
+"""Tests for `game` package."""
 import pytest
 
 
-from quantikai.game_elements import Board, Pawns, Colors, InvalidMoveError
+from quantikai.game import Board, Pawns, Colors, InvalidMoveError
 
 
 @pytest.fixture
