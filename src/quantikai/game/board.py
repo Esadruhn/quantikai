@@ -1,49 +1,9 @@
-"""Main module."""
-
-from enum import Enum
 from dataclasses import dataclass, field
 from typing import Generator
 
-NB_CELLS = 2
-
-
-class Pawns(Enum):
-    A = "A"
-    B = "B"
-    C = "C"
-    D = "D"
-
-
-class Colors(Enum):
-    BLUE = "\033[44m"
-    RED = "\033[41m"
-
-
-class InvalidMoveError(Exception):
-    def __init__(self, message):
-        super().__init__(message)
-
-
-@dataclass
-class Player:
-    color: Colors
-    pawns: list[Pawns] = field(
-        default_factory=lambda: NB_CELLS * [pawn for pawn in Pawns]
-    )
-
-    def remove(self, pawn: Pawns):
-        self.check_has_pawn(pawn)
-        self.pawns.remove(pawn)
-
-    def check_has_pawn(self, pawn):
-        if not pawn in self.pawns:
-            raise InvalidMoveError("You do not have this pawn.")
-
-    def get_printable_list_pawns(self):
-        t = ""
-        for pawn in self.pawns:
-            t += pawn.value + " "
-        return "Player " + self.color.name + " available pawns: " + t
+from quantikai.game.exceptions import InvalidMoveError
+from quantikai.game.enums import Colors, Pawns
+from quantikai.game.player import Player
 
 
 @dataclass(frozen=True, eq=True)
@@ -66,24 +26,24 @@ class Board:
 
     def print(self):
         upper_idx = "  "
-        for x in range(0, NB_CELLS * 2):
+        for x in range(0, 4):
             upper_idx += "   " + str(x) + "  "
         upper_idx += "\n"
-        upper_separator = "  " + " ____ " * NB_CELLS + "  " + "____  " * NB_CELLS + "\n"
+        upper_separator = "  " + " ____ " * 2 + "  " + "____  " * 2 + "\n"
         str_board = upper_idx + upper_separator
-        for i in range(NB_CELLS * 2):
+        for i in range(4):
             str_board += str(i) + " "
-            for j in range(NB_CELLS * 2):
+            for j in range(4):
                 if self.board[i][j]:
                     str_board += self._ctxt(
                         "|__" + self.board[i][j][0].value + "_|", self.board[i][j][1]
                     )
                 else:
                     str_board += "|____|"
-                if j + 1 == NB_CELLS:
+                if j + 1 == 2:
                     str_board += " "
             str_board += "\n"
-            if i + 1 == NB_CELLS:
+            if i + 1 == 2:
                 str_board += upper_separator
 
         print(str_board)
@@ -200,9 +160,7 @@ class Board:
 
     def _check_move_is_valid(self, x: int, y: int, pawn: Pawns, player: Colors):
         if x < 0 or y < 0 or x >= len(self.board) or y >= len(self.board[0]):
-            raise InvalidMoveError(
-                "x and y must be between 0 and " + str(NB_CELLS * NB_CELLS)
-            )
+            raise InvalidMoveError("x and y must be between 0 and " + str(4))
         if self.board[x][y]:
             raise InvalidMoveError("already a pawn there")
         for element in self.board[x]:
@@ -212,12 +170,8 @@ class Board:
             if row[y] and row[y][0] == pawn and row[y][1] != player:
                 raise InvalidMoveError("there is an opponent's pawn in that column")
         # check section
-        for row in self.board[
-            NB_CELLS * (x // NB_CELLS) : NB_CELLS * (x // NB_CELLS + 1)
-        ]:
-            for element in row[
-                NB_CELLS * (y // NB_CELLS) : NB_CELLS * (y // NB_CELLS + 1)
-            ]:
+        for row in self.board[2 * (x // 2) : 2 * (x // 2 + 1)]:
+            for element in row[2 * (y // 2) : 2 * (y // 2 + 1)]:
                 if element and element[0] == pawn and element[1] != player:
                     raise InvalidMoveError(
                         "there is an opponent's pawn in that section"
@@ -260,10 +214,10 @@ class Board:
         self, x: int, y: int
     ) -> Generator[tuple[int, int], None, None]:
         def lower(z):
-            return NB_CELLS * (z // NB_CELLS)
+            return 2 * (z // 2)
 
         def upper(z):
-            return NB_CELLS * (z // NB_CELLS + 1)
+            return 2 * (z // 2 + 1)
 
         for i in range(lower(x), upper(x)):
             for j in range(lower(y), upper(y)):
