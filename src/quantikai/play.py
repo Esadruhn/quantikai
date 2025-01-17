@@ -100,17 +100,17 @@ def bot_play():
     answer = user_input.strip() == "" or user_input.strip() == "yes"
     if not answer:
         player = next(player_cycle)
-        # The 1st move takes too much time to compute
-        # Random move is OK, adds more fun for the player
-        random.seed()
-        pawn = list(game.Pawns)[random.randrange(4)]
-        board.play(random.randrange(4), random.randrange(4), pawn, player.color)
-        player.remove(pawn)
-        board.print()
-        player = next(player_cycle)
 
     while 1:
         try:
+            if not board.have_possible_move(player.color):
+                print(
+                    "Player "
+                    + player.color.name
+                    + " has no possible move left, he loses!"
+                )
+                break
+
             is_a_win = False
             if player.color == game.Colors.BLUE:
                 # Human player's turn
@@ -136,11 +136,6 @@ def bot_play():
             print(e)
             continue
         player = next(player_cycle)
-        if not board.have_possible_move(player.color):
-            print(
-                "Player " + player.color.name + " has no possible move left, he loses!"
-            )
-            break
 
 
 def botvsbot_play():
