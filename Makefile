@@ -67,3 +67,5 @@ install: clean ## install the package to the active Python's site-packages ## py
 	pip install -r requirements_dev.txt
 	pip install --editable . 
 	
+frontend:
+	cd frontend && node index.js

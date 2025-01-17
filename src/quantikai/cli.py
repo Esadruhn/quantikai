@@ -4,7 +4,7 @@ import typer
 from rich.console import Console
 import timeit
 
-from quantikai import game, minmax, play
+from quantikai import game, play
 
 app = typer.Typer()
 console = Console()
