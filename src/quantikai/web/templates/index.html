@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+    <head>
+         <link rel="stylesheet" href="/static/index.css">
+    </head>
+    <title>Quantik</title>
+    <h1>Quantik</h1>
+
+    <body>
+        <div class="board">
+            {% for column_nb in range(2) %}
+            <div class="column">
+                {% for row_nb in range(2) %}
+                <div class="section">
+                    {% for section_col_nb in range(2) %}
+                        <div class="column">
+                            {% for section_row_nb in range(2) %}
+                            <span class="cell" x={{row_nb*2 + section_row_nb}} y={{column_nb*2 + section_col_nb}} id="cell-{{ row_nb*2 + section_row_nb }}-{{ column_nb*2 + section_col_nb }}" onClick="onClickCell(this)">{{ board[row_nb*2 + section_row_nb][column_nb*2 + section_col_nb] if board else "" }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+            {% endfor %}
+        <!-- inserting these scripts at the end to be able to use all the elements in the DOM -->
+        <script src="/static/index.js"></script>
+    </body>
+</html>
