@@ -7,6 +7,18 @@
     <h1>Quantik</h1>
 
     <body>
+        <button class="button">New game</button>
+        
+        <div>
+            <label for="pawn-select">Choose a pawn:</label>
+            <select name="pawn-select" id="pawn-select">
+                {% for pawn in ['A','B','C','D'] %}
+                <option value={{ pawn }}>{{pawn}}</option>
+                {% endfor %}
+            </select> 
+        </div>
+        
+    
         <div class="board">
             {% for column_nb in range(2) %}
             <div class="column">

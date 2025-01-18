@@ -4,13 +4,10 @@ html, body {
 
 body {
   display         : flex;
-  /* align-items     : center;
-  justify-content : center;
-  vertical-align  : center;
-  flex-wrap       : wrap;
-  align-content   : center; */
-  flex-direction: column;
+  align-items     : center;
+  flex-wrap       : nowrap;
   align-content   : center;
+  flex-direction: column;
   
   font-family     : 'Open Sans', sans-serif;
   background      : linear-gradient(top, #222, #333);
@@ -36,6 +33,7 @@ body {
     padding: 5px;
   }
   .cell {
+      cursor: pointer;
       display : block;
       width   : 125px;
       height  : 125px;
@@ -48,4 +46,23 @@ body {
       text-align  : center;
       padding     : 20px;
     }
+}
+
+.button {
+  border: none;
+  background-color: #e7e7e7;
+  color: black;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  cursor: pointer;
+}
+.button:hover {background-color: #8b8b8b}
+
+.button:active {
+  background-color: #222222;
+  box-shadow: 0 5px #666;
+  transform: translateY(4px);
 }
