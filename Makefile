@@ -66,6 +66,9 @@ test: ## run tests quickly with the default Python
 install: clean ## install the package to the active Python's site-packages ## python setup.py install
 	pip install -r requirements_dev.txt
 	pip install --editable . 
-	
-frontend:
-	cd frontend && node index.js
+
+cli: # e.g. make cli ARG=bot
+	python src/quantikai/cli.py $(ARG)
+
+dev: 
+	flask --app src/quantikai/wsgi.py run --debug
