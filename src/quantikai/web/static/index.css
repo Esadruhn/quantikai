@@ -11,11 +11,11 @@ body {
   padding-bottom: 50px;
   
   font-family     : Helvetica, Arial, sans-serif;
-  font-size       : 2em;
+  font-size       : 1em;
   background      : linear-gradient(top, #222, #333);
 } 
 h1 {
-  font-size       : 4em;  
+  font-size       : 3em;  
 }
 
 .flex-container {
