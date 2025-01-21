@@ -114,19 +114,20 @@ input {
   font-weight: bold;
   line-height: 20px;
   text-shadow: 1px 1px rgba(250,250,250,.3);
+  border: 1px solid
 }
 .error{
   background-color: #fce4e4;
-  border: 1px solid #fcc2c3;
+  border-color: #fcc2c3;
   color: #cc0033;
 }
 .win{
   background-color: #e4fcea;
-  border: 1px solid #c2fcc5;
+  border-color: #c2fcc5;
   color: #0c6800;
 }
 .wait{
   background-color: #e4e4fc;
-  border: 1px solid #c2cbfc;
+  border-color: #c2cbfc;
   color: #100068;
 }
