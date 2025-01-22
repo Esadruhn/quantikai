@@ -3,13 +3,38 @@ import copy
 from quantikai.game import Board, Player, Pawns, Colors
 
 
-def minmax(
+def get_best_move(
+    board: Board,
+    current_player: Player,
+    other_player: Player,
+) -> tuple[int, tuple[int, int, Pawns, Colors]]:
+    return _recursive_minmax(
+        player_max=current_player.color,
+        board=board,
+        current_player=current_player,
+        other_player=other_player,
+    )
+
+
+def _recursive_minmax(
     player_max: Colors,
     board: Board,
     current_player: Player,
     other_player: Player,
     depth: int = 0,
 ) -> tuple[int, tuple[int, int, Pawns, Colors]]:
+    """
+
+    Args:
+        player_max (Colors):
+        board (Board):
+        current_player (Player):
+        other_player (Player):
+        depth (int, optional): Leave it at 0, it is updated during the recursion. Defaults to 0.
+
+    Returns:
+        tuple[int, tuple[int, int, Pawns, Colors]]:
+    """
 
     possible_moves = board.get_possible_moves(
         current_player.pawns,
@@ -30,8 +55,8 @@ def minmax(
     for move in possible_moves:
         tmp_board = copy.deepcopy(board)
         tmp_player = copy.deepcopy(current_player)
-        is_a_win = tmp_board.play(*move)
-        tmp_player.remove(move[2])
+        is_a_win = tmp_board.play(move)
+        tmp_player.remove(move.pawn)
 
         move_score = None
         if is_a_win and tmp_player.color == player_max:
@@ -39,7 +64,7 @@ def minmax(
         if is_a_win and tmp_player.color != player_max:
             move_score = -1
         if not is_a_win:
-            move_score, _ = minmax(
+            move_score, _ = _recursive_minmax(
                 player_max=player_max,
                 board=tmp_board,
                 current_player=other_player,

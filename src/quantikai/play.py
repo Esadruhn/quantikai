@@ -42,7 +42,7 @@ def init_game():
     return board, player_cycle
 
 
-def human_player_loop(board, player):
+def _human_player_loop(board, player):
     pawn_list = player.get_printable_list_pawns()
     x, y, pawn = None, None, None
     while 1:
@@ -56,7 +56,7 @@ def human_player_loop(board, player):
             print(e)
 
     player.check_has_pawn(pawn)
-    is_a_win = board.play(x, y, pawn, player.color)
+    is_a_win = board.play(game.Move(x, y, pawn, player.color))
     player.remove(pawn)
     board.print()
     return is_a_win
@@ -73,7 +73,7 @@ def human_play():
 
     while 1:
         try:
-            is_a_win = human_player_loop(board, player)
+            is_a_win = _human_player_loop(board, player)
             if is_a_win:
                 print("Congratulations, player " + player.color.name + " WINS !")
                 break
@@ -114,7 +114,7 @@ def bot_play():
             is_a_win = False
             if player.color == game.Colors.BLUE:
                 # Human player's turn
-                is_a_win = human_player_loop(board, player)
+                is_a_win = _human_player_loop(board, player)
             else:
                 # Bot's turn
                 other_player = next(player_cycle)
@@ -124,9 +124,8 @@ def bot_play():
                 if move is None:
                     print("Player " + player.color.name + " gives up and loses.")
                     break
-                (x, y, pawn, _) = move
-                is_a_win = board.play(x, y, pawn, player.color)
-                player.remove(pawn)
+                is_a_win = board.play(move)
+                player.remove(move.pawn)
                 board.print()
 
             if is_a_win:
@@ -136,40 +135,3 @@ def bot_play():
             print(e)
             continue
         player = next(player_cycle)
-
-
-def botvsbot_play():
-    """Two bots playing"""
-    board, player_cycle = init_game()
-    player = next(player_cycle)
-
-    board.play(1, 1, game.Pawns.A, player.color)
-    player.remove(game.Pawns.A)
-    board.print()
-    player = next(player_cycle)
-
-    while 1:
-        try:
-            is_a_win = False
-            # Bot's turn
-            move = bot.get_best_move(board, player, next(player_cycle))
-            next(player_cycle)  # iterate to get back to other player
-            if move is None:
-                print("Player " + player.color.name + " gives up and loses.")
-                break
-            is_a_win = board.play(*move)
-            player.remove(move[2])
-            board.print()
-
-            if is_a_win:
-                print("Congratulations, player " + player.color.name + " WINS !")
-                break
-        except game.InvalidMoveError as e:
-            print(e)
-            continue
-        player = next(player_cycle)
-        if not board.have_possible_move(player.color):
-            print(
-                "Player " + player.color.name + " has no possible move left, he loses!"
-            )
-            break

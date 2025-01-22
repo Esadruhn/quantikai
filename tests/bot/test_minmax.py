@@ -3,7 +3,7 @@
 import pytest
 
 
-from quantikai.game import Board, Pawns, Colors, Player
+from quantikai.game import Board, Pawns, Colors, Player, Move
 from quantikai.bot import minmax
 
 
@@ -66,7 +66,7 @@ def test_best_move_none():
             Pawns.D,
         ],
     )
-    _, best_move = minmax.minmax(blue_player.color, board, blue_player, red_player)
+    _, best_move = minmax.get_best_move(board, blue_player, red_player)
     assert best_move is None
 
 
@@ -97,7 +97,7 @@ def test_worst_move():
             Pawns.D,
         ],
     )
-    _, best_move = minmax.minmax(red_player.color, board, red_player, blue_player)
+    _, best_move = minmax.get_best_move(board, red_player, blue_player)
     assert best_move is not None
     assert best_move != (1, 0, Pawns.D)
     assert best_move != (2, 0, Pawns.C)
@@ -137,11 +137,18 @@ def test_best_move_1():
             Pawns.D,
         ],
     )
-    _, best_move = minmax.minmax(red_player.color, board, red_player, blue_player)
-    assert best_move != (2, 3, Pawns.B)
+    _, best_move = minmax.get_best_move(board, red_player, blue_player)
+    assert best_move != Move(2, 3, Pawns.B, Colors.RED)
 
 
 def test_best_move_last():
+    #          0     1     2     3
+    #        ____  ____   ____  ____
+    #     0 |__A_||__B_| |__C_||____|
+    #     1 |__C_||____| |____||____|
+    #        ____  ____   ____  ____
+    #     2 |____||__D_| |__B_||____|
+    #     3 |____||____| |____||____|
     board = Board(
         board=[
             [
@@ -151,7 +158,7 @@ def test_best_move_last():
                 None,
             ],
             [(Pawns.C, Colors.RED), None, None, None],
-            [None, (Pawns.D, Colors.RED), None, None],
+            [None, (Pawns.D, Colors.RED), (Pawns.B, Colors.RED), None],
             [None, None, None, None],
         ]
     )
@@ -173,5 +180,5 @@ def test_best_move_last():
             Pawns.D,
         ],
     )
-    _, best_move = minmax.minmax(blue_player.color, board, blue_player, red_player)
-    assert best_move == (0, 3, Pawns.D, Colors.BLUE)
+    _, best_move = minmax.get_best_move(board, blue_player, red_player)
+    assert best_move == Move(0, 3, Pawns.D, Colors.BLUE)

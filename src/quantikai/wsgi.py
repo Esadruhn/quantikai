@@ -1,8 +1,7 @@
-from flask import Flask, render_template, request, session, redirect, url_for, jsonify
+from flask import Flask, render_template, request, session, jsonify
 import pathlib
 
 from quantikai import game, bot
-from quantikai.game.enums import Pawns
 
 PLAYER_WIN_MSG = "Congratulations, you win!"
 BOT_WIN_MSG = "The bot wins!"
@@ -35,28 +34,22 @@ def human_turn():
     move = request.get_json()
     board = game.Board.from_json(session["board"])
     human_player = game.Player.from_json(session["human_player"])
-    game_is_over = board.play(
+    move = game.Move(
         x=int(move["x"]),
         y=int(move["y"]),
-        pawn=move["pawn"],
+        pawn=game.Pawns[move["pawn"]],
         color=human_player.color,
     )
-    human_player.remove(Pawns[move["pawn"]])
+    game_is_over = board.play(move)
+    human_player.remove(move.pawn)
 
     session["board"] = board.to_json()
     session["human_player"] = human_player.to_json()
 
-    human_move = {
-        "x": int(move["x"]),
-        "y": int(move["y"]),
-        "pawn": move["pawn"],
-        "color": human_player.color.name,
-    }
-
     return {
         "game_is_over": game_is_over,
         "win_message": PLAYER_WIN_MSG,
-        "new_moves": [human_move],
+        "new_moves": [move.to_json()],
         "new_pawns": session["human_player"]["pawns"],
     }
 
@@ -79,28 +72,20 @@ def bot_turn():
         game_is_over = True
         win_message = PLAYER_WIN_MSG
     else:
-        game_is_over = board.play(*move)
-        bot_player.remove(move[2])
+        game_is_over = board.play(move)
+        bot_player.remove(move.pawn)
         if game_is_over or (
             not game_is_over and not board.have_possible_move(human_player.color)
         ):
-            # TODO bug, human player no move left does not trigger bot win
             game_is_over = True
             win_message = BOT_WIN_MSG
 
     session["board"] = board.to_json()
     session["bot_player"] = bot_player.to_json()
 
-    bot_move = {
-        "x": move[0],
-        "y": move[1],
-        "pawn": move[2].name,
-        "color": bot_player.color.name,
-    }
-
     return {
         "game_is_over": game_is_over,
         "win_message": win_message,
-        "new_moves": [bot_move],
+        "new_moves": [move.to_json()],
         "new_pawns": session["bot_player"]["pawns"],
     }

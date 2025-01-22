@@ -4,25 +4,20 @@ import typer
 from rich.console import Console
 import timeit
 
-from quantikai import game, play
+from quantikai import game, play, bot
 
 app = typer.Typer()
 console = Console()
 
 
-@app.command()
-def bot():
+@app.command(name="bot")
+def bot_play():
     play.bot_play()
 
 
 @app.command()
 def human():
     play.human_play()
-
-
-@app.command()
-def timer():
-    print(timeit.timeit(play.botvsbot_play, number=10))
 
 
 @app.command()
@@ -72,6 +67,11 @@ def rules():
         """Here the blue player only needs to play 3 2 C to win.
         """
     )
+
+
+@app.command()
+def timer():
+    bot.get_method_times()
 
 
 if __name__ == "__main__":

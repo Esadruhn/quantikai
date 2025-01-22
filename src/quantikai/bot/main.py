@@ -1,32 +1,29 @@
-import copy
-import math
-from dataclasses import dataclass
-
-from quantikai.game import Board, FrozenBoard, Player, Pawns, Colors
+from quantikai.game import Board, Player, Pawns
 from quantikai.bot import minmax
 from quantikai.bot import montecarlo
+
+
+def _switch_montecarlo_minmax(
+    board: Board, current_player: Player, other_player: Player
+):
+    # Decide between strategies
+    # Each player starts with 8 pawns, so we deduce from that the number of pawns on the board
+    # Safer method would be to count on the board
+    nb_pawns_on_board = 16 - len(current_player.pawns) - len(other_player.pawns)
+    if nb_pawns_on_board <= 4:
+        return montecarlo.get_best_move
+    return minmax.get_best_move
 
 
 def get_best_move(
     board: Board, current_player: Player, other_player: Player
 ) -> tuple[int, int, Pawns]:
 
-    # TODO - decide between strategies
-    if True:
-        best_score, best_move = montecarlo.montecarlo(
-            board=board,
-            current_player=current_player,
-            other_player=other_player,
-        )
-        print("I am %4.1f%% confident I will win." % (best_score * 100))
-    else:
-        best_score, best_move = minmax.minmax(
-            player_max=current_player.color,
-            board=board,
-            current_player=current_player,
-            other_player=other_player,
-        )
-        if best_score != 1:
-            # because sass is the game
-            print("If you play optimally you will win.")
+    _, best_move = _switch_montecarlo_minmax(
+        board=board, current_player=current_player, other_player=other_player
+    )(
+        board=board,
+        current_player=current_player,
+        other_player=other_player,
+    )
     return best_move

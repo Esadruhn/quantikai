@@ -14,7 +14,6 @@ body {
 } 
 .sidebar {
   width: 20em;
-  flex-flow: column nowrap;
 }
 .flex-container {
   padding: 0;
@@ -34,6 +33,7 @@ body {
   text-align: center;
   padding: 10px;
 }
+.flex-item:hover {background-color: #8b8b8b}
 label {
   height: 100%;
   display: flex;
@@ -41,9 +41,10 @@ label {
   justify-content: center;
 }
 input:checked + label {
-  background: #272727;
+  background: #8b8b8b;
   color: #C3D0D9
 }
+
 input {
   display: none;
 }

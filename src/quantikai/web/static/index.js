@@ -1,13 +1,14 @@
-function handler(e) {
-        e.stopPropagation();
-        e.preventDefault();
-    }
-function enableAllClicks(is_able) { 
+function enableAllCellClicks(is_able) { 
+    cells = document.getElementsByClassName("cell")
     if (is_able) { 
-        document.removeEventListener("click", handler, true)
+        for (let cell of cells) { 
+            cell.onclick = function(e){onClickCell(cell.getAttribute("x"), cell.getAttribute("y"))}
+        }
     }
     else { 
-        document.addEventListener("click", handler, true); 
+        for (let cell of cells) { 
+            cell.onclick = null
+        }
     }
 }
 function updateBoard(new_moves) { 
@@ -35,13 +36,12 @@ function applyPlayerTurn(jsonResponse) {
 function onClickCell(x, y) { 
     
     const pawn = document.querySelector('input[name="pawn-select"]:checked').getAttribute("val");
-    console.log(document.querySelector('input[name="pawn-select"]:checked'))
 
     // Delete the error message
     document.getElementById("msgBox").innerHTML = ""
 
     // Disable all onClick events
-    enableAllClicks(false)
+    enableAllCellClicks(false)
 
     fetch("http://127.0.0.1:5000/", {method: "POST", body: JSON.stringify({ "x": x, "y": y, "pawn": pawn }), headers: {
         "Content-Type": "application/json",
@@ -66,17 +66,19 @@ function onClickCell(x, y) {
                     return response.json().then(response => {throw new Error(response.text)})
             })
             .then(applyPlayerTurn)
-            .then(() => {
-                document.getElementById("msgBox").innerHTML = ""
-                // Enable click events again
-                enableAllClicks(true)
+            .then(function (isWin) {
+                if (!isWin){
+                    document.getElementById("msgBox").innerHTML = ""
+                    // Enable click events again
+                    enableAllCellClicks(true)
+                }
             })
         }
     })
     .catch((error) => {
         document.getElementById("msgBox").innerHTML = `<p class="error msg">` + error + `</p>`
         // Enable click events again
-        enableAllClicks(true)
+        enableAllCellClicks(true)
     })
 
 }
