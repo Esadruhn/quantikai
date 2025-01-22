@@ -32,7 +32,6 @@ def home():
 
 @app.post("/")
 def human_turn():
-    # TODO proper request parsing
     move = request.get_json()
     board = game.Board.from_json(session["board"])
     human_player = game.Player.from_json(session["human_player"])
@@ -56,7 +55,7 @@ def human_turn():
 
     return {
         "game_is_over": game_is_over,
-        "win_message": PLAYER_WIN_MSG if game_is_over else "",
+        "win_message": PLAYER_WIN_MSG,
         "new_moves": [human_move],
         "new_pawns": session["human_player"]["pawns"],
     }
@@ -64,7 +63,6 @@ def human_turn():
 
 @app.post("/bot")
 def bot_turn():
-    # TODO proper request parsing
     board = game.Board.from_json(session["board"])
     human_player = game.Player.from_json(session["human_player"])
     bot_player = game.Player.from_json(session["bot_player"])
@@ -73,7 +71,7 @@ def bot_turn():
     win_message = None
 
     if not board.have_possible_move(bot_player.color):
-        game_is_over = False
+        game_is_over = True
         win_message = PLAYER_WIN_MSG
 
     move = bot.get_best_move(board, bot_player, human_player)
@@ -86,6 +84,7 @@ def bot_turn():
         if game_is_over or (
             not game_is_over and not board.have_possible_move(human_player.color)
         ):
+            # TODO bug, human player no move left does not trigger bot win
             game_is_over = True
             win_message = BOT_WIN_MSG
 
