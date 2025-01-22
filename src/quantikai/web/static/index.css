@@ -4,20 +4,18 @@ html, body {
 
 body {
   display         : flex;
-  align-items     : center;
-  flex-wrap       : nowrap;
-  align-content   : center;
-  flex-direction: column;
-  padding-bottom: 50px;
+  align-items     : start;
+  flex-flow       : row;
+  margin          : 40px;
   
   font-family     : Helvetica, Arial, sans-serif;
   font-size       : 1em;
   background      : linear-gradient(top, #222, #333);
 } 
-h1 {
-  font-size       : 3em;  
+.sidebar {
+  width: 20em;
+  flex-flow: column nowrap;
 }
-
 .flex-container {
   padding: 0;
   margin: 0;
@@ -57,35 +55,35 @@ input {
   vertical-align  : center;
   flex-wrap       : nowrap;
   align-content   : center;
-  
-  .column {
-    display         : flex;
-    flex-direction  : column;
-    justify-content : space-between;
-  }
-  .section {
-    display         : flex;
-    flex-direction  : row;
-    background-color  : 1px solid #000000;
-    padding: 5px;
-  }
-  .cell {
-      font-size: 4em;
-      display         : flex;
-      align-items     : center;
-      justify-content : center;
-      cursor  : pointer;
-      width   : 125px;
-      height  : 125px;
-      border  : 1px solid #ffffff;
-      
-      background-color: #cecece;
-      font-weight : 100;
-      text-align  : center;
-      padding     : 20px;
-    }
-    .cell:hover {background-color: #8b8b8b}
+} 
+.column {
+  display         : flex;
+  flex-direction  : column;
+  justify-content : space-between;
 }
+.section {
+  display         : flex;
+  flex-direction  : row;
+  background-color  : 1px solid #000000;
+  padding: 5px;
+}
+.cell {
+    font-size: 4em;
+    display         : flex;
+    align-items     : center;
+    justify-content : center;
+    cursor  : pointer;
+    width   : 125px;
+    height  : 125px;
+    border  : 1px solid #ffffff;
+    
+    background-color: #cecece;
+    font-weight : 100;
+    text-align  : center;
+    padding     : 20px;
+}
+.cell:hover {background-color: #8b8b8b}
+
 .BLUE {color       : #1f449c;}
 .RED {color       : #f05039;}
 
@@ -108,26 +106,21 @@ input {
 }
 
 .msg {
-  float: left;
   padding: 20px 30px;
 
   font-weight: bold;
   line-height: 20px;
   text-shadow: 1px 1px rgba(250,250,250,.3);
-  border: 1px solid
 }
 .error{
   background-color: #fce4e4;
-  border-color: #fcc2c3;
   color: #cc0033;
 }
 .win{
   background-color: #e4fcea;
-  border-color: #c2fcc5;
   color: #0c6800;
 }
 .wait{
   background-color: #e4e4fc;
-  border-color: #c2cbfc;
   color: #100068;
 }

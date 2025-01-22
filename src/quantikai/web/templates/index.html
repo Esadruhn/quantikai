@@ -9,24 +9,24 @@
         const board = JSON.parse('{{ session["board"]|tojson|safe }}');
         const humanPlayer = JSON.parse('{{ session["human_player"]|tojson|safe }}');
     </script>
+    <title>Quantik</title>
 
     <body>
-        <title>Quantik</title>
-        <h1>Quantik</h1>
-
-        <button class="button" onClick="onClickNewGame()">New game</button>
-        <p id="msgBox"></p>
-        <fieldset>
-            <legend>Select a pawn:</legend>
-            <ul class="flex-container longhand">
-                {% for pawn in session["human_player"].pawns %}
-                <li id={{pawn}} class="flex-item BLUE">
-                    <input id={{pawn}}-{{loop.index}} type="radio" name="pawn-select" val={{pawn}}>
-                    <label for={{pawn}}-{{loop.index}}>{{pawn}}</label>
-                </li>
-                {% endfor %}
-            </ul>
-        </fieldset>
+        <div class="sidebar">
+            <button class="button" onClick="onClickNewGame()">New game</button>
+            <fieldset>
+                <legend>Select a pawn:</legend>
+                <ul class="flex-container longhand">
+                    {% for pawn in session["human_player"].pawns %}
+                    <li id={{pawn}} class="flex-item BLUE">
+                        <input id={{pawn}}-{{loop.index}} type="radio" name="pawn-select" val={{pawn}}>
+                        <label for={{pawn}}-{{loop.index}}>{{pawn}}</label>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </fieldset>
+            <p id="msgBox"></p>
+        </div>
     
         <div class="board">
             {% for column_nb in range(2) %}
@@ -52,6 +52,7 @@
                 {% endfor %}
             </div>
             {% endfor %}
+        </div>
         <!-- inserting these scripts at the end to be able to use all the elements in the DOM -->
         <script src="/static/index.js"></script>
     </body>
