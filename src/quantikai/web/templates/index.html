@@ -1,0 +1,59 @@
+<!doctype html>
+<html>
+    <head>
+         <link rel="stylesheet" href="/static/index.css">
+         <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    </head>
+    <script>
+        <!-- Variables passed from the Python code, make available to js script -->
+        const board = JSON.parse('{{ session["board"]|tojson|safe }}');
+        const humanPlayer = JSON.parse('{{ session["human_player"]|tojson|safe }}');
+    </script>
+    <title>Quantik</title>
+
+    <body>
+        <div class="sidebar">
+            <button class="button" onClick="onClickNewGame()">New game</button>
+            <fieldset>
+                <legend>Select a pawn:</legend>
+                <ul class="flex-container longhand">
+                    {% for pawn in session["human_player"].pawns %}
+                    <li id={{pawn}} class="flex-item BLUE">
+                        <input id={{pawn}}-{{loop.index}} type="radio" name="pawn-select" val={{pawn}}>
+                        <label for={{pawn}}-{{loop.index}}>{{pawn}}</label>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </fieldset>
+            <p id="msgBox"></p>
+        </div>
+    
+        <div class="board">
+            {% for column_nb in range(2) %}
+            <div class="column">
+                {% for row_nb in range(2) %}
+                <div class="section">
+                    {% for section_col_nb in range(2) %}
+                        <div class="column">
+                            {% for section_row_nb in range(2) %}
+                            <span 
+                                class="cell {{session["board"][row_nb*2 + section_row_nb][column_nb*2 + section_col_nb][1] if session["board"][row_nb*2 + section_row_nb][column_nb*2 + section_col_nb] else ""}}"
+                                x={{row_nb*2 + section_row_nb}} 
+                                y={{column_nb*2 + section_col_nb}}
+                                id="cell-{{ row_nb*2 + section_row_nb }}-{{ column_nb*2 + section_col_nb }}" 
+                                onClick="onClickCell(this.attributes.x.value, this.attributes.y.value)"
+                            >
+                                {{ session["board"][row_nb*2 + section_row_nb][column_nb*2 + section_col_nb][0] if session["board"][row_nb*2 + section_row_nb][column_nb*2 + section_col_nb] else "" }}
+                            </span>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+        <!-- inserting these scripts at the end to be able to use all the elements in the DOM -->
+        <script src="/static/index.js"></script>
+    </body>
+</html>

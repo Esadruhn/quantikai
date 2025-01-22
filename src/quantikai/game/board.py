@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from typing import Generator
+import json
 
 from quantikai.game.exceptions import InvalidMoveError
 from quantikai.game.enums import Colors, Pawns
@@ -16,6 +17,25 @@ class Board:
     board: list[list[tuple[Pawns, Colors]]] = field(
         default_factory=lambda: [[None for _ in range(4)] for _ in range(4)]
     )
+
+    @classmethod
+    def from_json(cls, body):
+        # TODO check values in body
+        return cls(
+            board=[
+                [
+                    None if elt is None else (Pawns[elt[0]], Colors[elt[1]])
+                    for elt in row
+                ]
+                for row in body
+            ]
+        )
+
+    def to_json(self):
+        return [
+            [None if v is None else (v[0].name, v[1].name) for v in row]
+            for row in self.board
+        ]
 
     def play(self, x: int, y: int, pawn: Pawns, color: Colors):
         pawn = Pawns(pawn)
@@ -160,7 +180,14 @@ class Board:
 
     def _check_move_is_valid(self, x: int, y: int, pawn: Pawns, player: Colors):
         if x < 0 or y < 0 or x >= len(self.board) or y >= len(self.board[0]):
-            raise InvalidMoveError("x and y must be between 0 and " + str(4))
+            raise InvalidMoveError(
+                "x and y must be between 0 and "
+                + str(4)
+                + " their values are: "
+                + str(x)
+                + " "
+                + str(y)
+            )
         if self.board[x][y]:
             raise InvalidMoveError("already a pawn there")
         for element in self.board[x]:

@@ -112,15 +112,18 @@ def montecarlo(
             iteration_nodes.append(node_to_explore)
 
             if is_win:
-                if is_current:
-                    iteration_score = 1
+                iteration_score = 1
                 break
 
         # Backtrack the scores and iterations
         while len(iteration_nodes) > 0:
+            is_current = not is_current
             node = iteration_nodes.pop()
             game_tree[node].times_visited += 1
-            game_tree[node].score += iteration_score
+            if is_current:
+                game_tree[node].score += iteration_score
+            else:
+                game_tree[node].score += 1 - iteration_score
 
     # Choose the most visited node
     best_move = None

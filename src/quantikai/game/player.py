@@ -22,3 +22,11 @@ class Player:
         for pawn in self.pawns:
             t += pawn.value + " "
         return "Player " + self.color.name + " available pawns: " + t
+
+    @classmethod
+    def from_json(cls, body):
+        # TODO check values in body
+        return cls(color=Colors[body["color"]], pawns=[Pawns(p) for p in body["pawns"]])
+
+    def to_json(self):
+        return {"color": self.color.name, "pawns": [p.name for p in self.pawns]}

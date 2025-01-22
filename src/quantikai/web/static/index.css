@@ -1,0 +1,126 @@
+html, body {
+  height : 100%;
+}
+
+body {
+  display         : flex;
+  align-items     : start;
+  flex-flow       : row;
+  margin          : 40px;
+  
+  font-family     : Helvetica, Arial, sans-serif;
+  font-size       : 1em;
+  background      : linear-gradient(top, #222, #333);
+} 
+.sidebar {
+  width: 20em;
+  flex-flow: column nowrap;
+}
+.flex-container {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  display: flex;
+}
+.longhand {
+  flex-flow: wrap row;
+}
+.flex-item {
+  color: #C3D0D9;
+  border: 1px solid #C3D0D9;
+  width: 50px;
+  height: 50px;
+  font-size: 1.3em;
+  text-align: center;
+  padding: 10px;
+}
+label {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+input:checked + label {
+  background: #272727;
+  color: #C3D0D9
+}
+input {
+  display: none;
+}
+
+.board {
+  display         : flex;
+  align-items     : center;
+  justify-content : center;
+  vertical-align  : center;
+  flex-wrap       : nowrap;
+  align-content   : center;
+} 
+.column {
+  display         : flex;
+  flex-direction  : column;
+  justify-content : space-between;
+}
+.section {
+  display         : flex;
+  flex-direction  : row;
+  background-color  : 1px solid #000000;
+  padding: 5px;
+}
+.cell {
+    font-size: 4em;
+    display         : flex;
+    align-items     : center;
+    justify-content : center;
+    cursor  : pointer;
+    width   : 125px;
+    height  : 125px;
+    border  : 1px solid #ffffff;
+    
+    background-color: #cecece;
+    font-weight : 100;
+    text-align  : center;
+    padding     : 20px;
+}
+.cell:hover {background-color: #8b8b8b}
+
+.BLUE {color       : #1f449c;}
+.RED {color       : #f05039;}
+
+.button {
+  font-size: 2em;
+  border: none;
+  background-color: #e7e7e7;
+  color: black;
+  padding: 15px 32px;
+  text-align: center;
+  display: inline-block;
+  cursor: pointer;
+}
+.button:hover {background-color: #8b8b8b}
+
+.button:active {
+  background-color: #222222;
+  box-shadow: 0 5px #666;
+  transform: translateY(4px);
+}
+
+.msg {
+  padding: 20px 30px;
+
+  font-weight: bold;
+  line-height: 20px;
+  text-shadow: 1px 1px rgba(250,250,250,.3);
+}
+.error{
+  background-color: #fce4e4;
+  color: #cc0033;
+}
+.win{
+  background-color: #e4fcea;
+  color: #0c6800;
+}
+.wait{
+  background-color: #e4e4fc;
+  color: #100068;
+}
