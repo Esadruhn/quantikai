@@ -3,8 +3,6 @@ import math
 from dataclasses import dataclass
 import random
 
-from narwhals import Boolean
-
 from quantikai.game import Board, FrozenBoard, Player, Pawns, Colors
 
 DEFAULT_UCT = 10000 # + infinite
@@ -44,7 +42,7 @@ def _montecarlo_uct(
 def _explore_node(
     game_tree: set[Node, MonteCarloScore],
     parent_node: Node,
-    is_current: Boolean,
+    is_current: bool,
     board: Board,
     player: Player,
     uct_cst: float,
@@ -102,7 +100,7 @@ def _montecarlo_algo(
     other_player: Player,
     iterations: int,
     uct_cst: float,
-    use_depth: Boolean,
+    use_depth: bool,
 ):
     """Execute the montecarlo algorithm, up to generating
     the 'game tree' i.e. the graph of the moves with their
@@ -168,7 +166,7 @@ def get_best_move(
     other_player: Player,
     iterations: int = 1000,
     uct_cst: float = 0.7,
-    use_depth: Boolean = True,
+    use_depth: bool = True,
 ) -> tuple[int, tuple[int, int, Pawns, Colors]]:
     """http://www.incompleteideas.net/609%20dropbox/other%20readings%20and%20resources/MCTS-survey.pdf
     Upper Confidence Bounds for Trees (UCT)
@@ -223,7 +221,7 @@ def get_move_stats(
     other_player: Player,
     iterations: int = 1000,
     uct_cst: float = 0.7,
-    use_depth: Boolean = True,
+    use_depth: bool = True,
 ) -> dict[tuple[int, int, Pawns, Colors], float]:
     frozen_board = board.get_frozen()  # hashable version of the board
 
