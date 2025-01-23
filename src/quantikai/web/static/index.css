@@ -45,7 +45,7 @@ input:checked + label {
   color: #C3D0D9
 }
 
-input {
+.hidden {
   display: none;
 }
 
@@ -88,19 +88,20 @@ input {
 .BLUE {color       : #1f449c;}
 .RED {color       : #f05039;}
 
-.button {
+button {
   font-size: 2em;
   border: none;
   background-color: #e7e7e7;
   color: black;
   padding: 15px 32px;
+  margin: 5px;
   text-align: center;
   display: inline-block;
   cursor: pointer;
 }
-.button:hover {background-color: #8b8b8b}
+button:hover {background-color: #8b8b8b}
 
-.button:active {
+button:active {
   background-color: #222222;
   box-shadow: 0 5px #666;
   transform: translateY(4px);

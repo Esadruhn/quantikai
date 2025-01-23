@@ -13,18 +13,22 @@
 
     <body>
         <div class="sidebar">
-            <button class="button" onClick="onClickNewGame()">New game</button>
+            <button onClick="onClickNewGame()">New game</button>
+            <button id="modeButton" onClick="onClickChangeMode(this.attributes.mode.value)" mode="classic">Classic mode</button>
             <fieldset>
                 <legend>Select a pawn:</legend>
                 <ul class="flex-container longhand">
                     {% for pawn in session["human_player"].pawns %}
                     <li id={{pawn}} class="flex-item BLUE">
-                        <input id={{pawn}}-{{loop.index}} type="radio" name="pawn-select" val={{pawn}}>
+                        <input id={{pawn}}-{{loop.index}} type="radio" name="pawn-select" val={{pawn}} class="hidden">
                         <label for={{pawn}}-{{loop.index}}>{{pawn}}</label>
                     </li>
                     {% endfor %}
                 </ul>
             </fieldset>
+            <div id="modeAnalysis" class="hidden">
+                <button id="buttonNextMove" onClick="onClickNextMove()">Next move</button>
+            </div>
             <p id="msgBox"></p>
         </div>
     

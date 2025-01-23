@@ -3,7 +3,7 @@ import math
 from dataclasses import dataclass
 import random
 
-from quantikai.game import Board, FrozenBoard, Player, Pawns, Colors
+from quantikai.game import Board, FrozenBoard, Player, Pawns, Colors, Move
 
 DEFAULT_UCT = 10000 # + infinite
 
@@ -15,7 +15,7 @@ class Node:
     """
 
     board: FrozenBoard
-    parent_move: tuple[int, int, Pawns, Colors] = None
+    parent_move: Move = None
 
 
 @dataclass
@@ -56,10 +56,6 @@ def _explore_node(
         player.color,
         optimize=True,
     )
-    # To ensure that using the function several times in a row returns
-    # different outcomes between the equal ones
-    # There is some randomness already because possible_moves is a set
-    random.shuffle(list(possible_moves))
 
     # end case: the parent node is a leaf node
     if len(possible_moves) == 0:
@@ -101,7 +97,7 @@ def _montecarlo_algo(
     iterations: int,
     uct_cst: float,
     use_depth: bool,
-):
+) -> dict[Node, MonteCarloScore]:
     """Execute the montecarlo algorithm, up to generating
     the 'game tree' i.e. the graph of the moves with their
     scores.
@@ -222,7 +218,7 @@ def get_move_stats(
     iterations: int = 1000,
     uct_cst: float = 0.7,
     use_depth: bool = True,
-) -> dict[tuple[int, int, Pawns, Colors], float]:
+) -> list[tuple[Move, MonteCarloScore]]:
     frozen_board = board.get_frozen()  # hashable version of the board
 
     game_tree = _montecarlo_algo(
@@ -234,8 +230,48 @@ def get_move_stats(
         use_depth=use_depth,
     )
 
-    return {
-        node.parent_move: montecarlo.score
+    return [
+        (node.parent_move, montecarlo)
         for node, montecarlo in game_tree.items()
         if node.board == frozen_board and node.parent_move is not None
-    }
+    ].sort(key=lambda x: x[1].times_visited)
+
+def get_best_play(board: Board,
+    current_player: Player,
+    other_player: Player,
+    iterations: int = 1000,
+    uct_cst: float = 0.7,
+    use_depth: bool = True,
+) -> list[tuple[Move, MonteCarloScore]]:
+
+    frozen_board = board.get_frozen()  # hashable version of the board
+
+    game_tree = _montecarlo_algo(
+        board=board,
+        current_player=current_player,
+        other_player=other_player,
+        iterations=iterations,
+        uct_cst=uct_cst,
+        use_depth=use_depth,
+    )
+
+    best_play = list()
+    next_moves = [(node.parent_move, montecarlo)
+        for node, montecarlo in game_tree.items()
+        if node.board == frozen_board and node.parent_move is not None
+    ]
+    if len(next_moves) == 0:
+        return []
+    move = max(next_moves, key=lambda x: x[1].times_visited)
+    best_play.append(move)
+    tmp_board = copy.deepcopy(board)
+    while(1):
+        tmp_board.play(move)
+        next_moves = [(node.parent_move, montecarlo) for node, montecarlo in game_tree.items() if node.board == tmp_board.get_frozen()]
+        if len(next_moves) == 0:
+            break
+        move = max(next_moves, key=lambda x: x[1].times_visited)
+        best_play.append(move)
+    return best_play
+
+
