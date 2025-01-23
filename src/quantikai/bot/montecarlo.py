@@ -132,14 +132,12 @@ def _montecarlo_algo(
         while 1:
             is_current = not is_current
             player = tmp_player if is_current else tmp_other
-            game_is_over, node_to_explore, player, tmp_board, game_tree = (
-                _explore_node(
-                    game_tree=game_tree,
-                    parent_node=parent_node,
-                    board=tmp_board,
-                    player=player,
-                    uct_cst=uct_cst,
-                )
+            game_is_over, node_to_explore, player, tmp_board, game_tree = _explore_node(
+                game_tree=game_tree,
+                parent_node=parent_node,
+                board=tmp_board,
+                player=player,
+                uct_cst=uct_cst,
             )
             if node_to_explore is not None:
                 iteration_nodes.append(node_to_explore)

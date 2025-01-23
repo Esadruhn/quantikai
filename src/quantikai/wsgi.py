@@ -99,12 +99,9 @@ def get_board_analysis():
     human_player = game.Player.from_json(session["human_player"])
     bot_player = game.Player.from_json(session["bot_player"])
     if session["next_player"] == "human_player":
-        return montecarlo.get_move_stats(
-            board, human_player, bot_player
-        )
-    return montecarlo.get_move_stats(
-        board, bot_player, human_player
-    )
+        return montecarlo.get_move_stats(board, human_player, bot_player)
+    return montecarlo.get_move_stats(board, bot_player, human_player)
+
 
 @app.post("/gameprediction")
 def get_best_play():
@@ -112,9 +109,5 @@ def get_best_play():
     human_player = game.Player.from_json(session["human_player"])
     bot_player = game.Player.from_json(session["bot_player"])
     if session["next_player"] == "human_player":
-        return montecarlo.get_best_play(
-            board, human_player, bot_player
-        )
-    return montecarlo.get_best_play(
-        board, bot_player, human_player
-    )
+        return montecarlo.get_best_play(board, human_player, bot_player)
+    return montecarlo.get_best_play(board, bot_player, human_player)

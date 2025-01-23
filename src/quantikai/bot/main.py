@@ -15,9 +15,7 @@ def _switch_montecarlo_minmax(
     return minmax.get_best_move
 
 
-def get_best_move(
-    board: Board, current_player: Player, other_player: Player
-) -> Move:
+def get_best_move(board: Board, current_player: Player, other_player: Player) -> Move:
 
     _, best_move = _switch_montecarlo_minmax(
         board=board, current_player=current_player, other_player=other_player
