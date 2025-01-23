@@ -17,4 +17,3 @@ class Move:
             "pawn": self.pawn.name,
             "color": self.color.name,
         }
-    

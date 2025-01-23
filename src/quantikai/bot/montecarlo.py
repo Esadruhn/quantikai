@@ -1,11 +1,14 @@
 import copy
 import math
 from dataclasses import dataclass
-import random
 
 from quantikai.game import Board, FrozenBoard, Player, Pawns, Colors, Move
 
-DEFAULT_UCT = 10000 # + infinite
+DEFAULT_UCT: float = 10000  # + infinite
+ITERATIONS = 5000
+UCT_CST = 0.7
+USE_DEPTH = True
+
 
 @dataclass(frozen=True, eq=True)
 class Node:
@@ -15,7 +18,7 @@ class Node:
     """
 
     board: FrozenBoard
-    parent_move: Move = None
+    parent_move: Move | None = None
 
 
 @dataclass
@@ -26,7 +29,9 @@ class MonteCarloScore:
 
     times_visited: int = 0  # Number of times the nodes has been visited
     score: int = 0  # Sum of the iteration rewards
-    uct: int = DEFAULT_UCT  # UCT value, that represents a trade-off exploration/exploitation
+    uct: float = (
+        DEFAULT_UCT  # UCT value, that represents a trade-off exploration/exploitation
+    )
 
 
 def _montecarlo_uct(
@@ -40,16 +45,21 @@ def _montecarlo_uct(
 
 
 def _explore_node(
-    game_tree: set[Node, MonteCarloScore],
+    game_tree: dict[Node, MonteCarloScore],
     parent_node: Node,
-    is_current: bool,
     board: Board,
     player: Player,
     uct_cst: float,
-) -> tuple[int, Node, Player, Board, set[Node, MonteCarloScore]]:
-    """Explore one node: compute children nodes and execute one"""
+) -> tuple[bool, Node | None, Player, Board, dict[Node, MonteCarloScore]]:
+    """Explore one node: compute children nodes and execute one.
 
-    iteration_score = 0
+    Returns:
+        - game is over
+        - explored node (None if there is no possible move)
+        - updated player
+        - updated board
+        - updated game tree (computed the scores of the possible next nodes)
+    """
 
     possible_moves = board.get_possible_moves(
         player.pawns,
@@ -59,9 +69,7 @@ def _explore_node(
 
     # end case: the parent node is a leaf node
     if len(possible_moves) == 0:
-        if not is_current:
-            iteration_score = 1
-        return iteration_score, None, player, board, game_tree
+        return True, None, player, board, game_tree
 
     # Choose the node with the best trade-off exploration/exploitation
     node_to_explore = None
@@ -84,10 +92,9 @@ def _explore_node(
     player.remove(node_to_explore.parent_move.pawn)
 
     if is_win:
-        iteration_score = 1
-        return 1, node_to_explore, player, board, game_tree
+        return True, node_to_explore, player, board, game_tree
 
-    return None, node_to_explore, player, board, game_tree
+    return False, node_to_explore, player, board, game_tree
 
 
 def _montecarlo_algo(
@@ -119,16 +126,16 @@ def _montecarlo_algo(
         # We keep a list of the nodes we explore at each iteration
         # so that at the end we can backtrack the scores and UCT evaluation
         iteration_nodes = list([root_node])
-        depth = 16
+        # The reward is higher if the game ends sooner
+        depth_reward = 16
 
         while 1:
             is_current = not is_current
             player = tmp_player if is_current else tmp_other
-            iteration_score, node_to_explore, player, tmp_board, game_tree = (
+            game_is_over, node_to_explore, player, tmp_board, game_tree = (
                 _explore_node(
                     game_tree=game_tree,
                     parent_node=parent_node,
-                    is_current=is_current,
                     board=tmp_board,
                     player=player,
                     uct_cst=uct_cst,
@@ -136,12 +143,9 @@ def _montecarlo_algo(
             )
             if node_to_explore is not None:
                 iteration_nodes.append(node_to_explore)
-            if iteration_score is not None:
-                if use_depth:
-                    iteration_score = depth
+            if game_is_over:
                 break
-
-            depth -= 1
+            depth_reward -= 1
 
         # Backtrack the scores and iterations
         while len(iteration_nodes) > 0:
@@ -149,9 +153,9 @@ def _montecarlo_algo(
             game_tree[node].times_visited += 1
             adjustable = 16 if use_depth else 1
             if is_current:
-                game_tree[node].score += iteration_score
+                game_tree[node].score += depth_reward
             else:
-                game_tree[node].score += adjustable - iteration_score
+                game_tree[node].score += adjustable - depth_reward
             is_current = not is_current
     return game_tree
 
@@ -160,25 +164,40 @@ def get_best_move(
     board: Board,
     current_player: Player,
     other_player: Player,
-    iterations: int = 1000,
-    uct_cst: float = 0.7,
-    use_depth: bool = True,
-) -> tuple[int, tuple[int, int, Pawns, Colors]]:
+    iterations: int = ITERATIONS,
+    uct_cst: float = UCT_CST,
+    use_depth: bool = USE_DEPTH,
+) -> tuple[int, Move]:
     """http://www.incompleteideas.net/609%20dropbox/other%20readings%20and%20resources/MCTS-survey.pdf
     Upper Confidence Bounds for Trees (UCT)
 
     There is a statitical way of defining the best number of iterations:
     see https://kb.palisade.com/index.php?pg=kb.page&id=125
-    With use_depth, doe snot need may iterations (100). Without it, the algorithm easily
-    misses an instant win if there are many possible moves to investigate, even with 10'000
-    iterations.
+    use_depth is meant to reduce the necessary number of iterations and encourage visiting paths
+    that lead to a quick win.
+
+    Test the "iterations" variable: run the algo on an empty board and look at the "best" play i.e. the path
+    of most visited nodes, see after which depth the nodes have been visited only once.
+    e.g. here we see that with 5000 iterations, depth = 4
+    [{"color":"BLUE","pawn":"A","x":2,"y":2},{"score":9404,"times_visited":897,"uct":10.676760650853348}]
+    [{"color":"RED","pawn":"D","x":3,"y":0},{"score":2168,"times_visited":353,"uct":6.444225713864206}]
+    [{"color":"BLUE","pawn":"C","x":3,"y":3},{"score":834,"times_visited":78,"uct":11.346311423620698}]
+    [{"color":"RED","pawn":"C","x":0,"y":1},{"score":67,"times_visited":12,"uct":7.250682783483356}]
+    [{"color":"BLUE","pawn":"A","x":1,"y":3},{"score":12,"times_visited":1,"uct":10000}]
+
+    With use_depth=True:
+    - 1000 iterations - 3
+    - 5000 iterations - 4
+
+    With use_depth=False:
+    TODO
 
     Args:
         board (Board): _description_
         current_player (Player): _description_
         other_player (Player): _description_
         iterations (int, optional): _description_. Defaults to 500.
-        uct_cst (float, optional): 0.7 (1/sqrt(2) works well
+        uct_cst (float, optional): UCT_CST (1/sqrt(2) works well
         use_depth (bool, optional): Victory score is better if fewer moves are needed (between 16 and 1). Defaults to True
 
     Returns:
@@ -215,9 +234,9 @@ def get_move_stats(
     board: Board,
     current_player: Player,
     other_player: Player,
-    iterations: int = 1000,
-    uct_cst: float = 0.7,
-    use_depth: bool = True,
+    iterations: int = ITERATIONS,
+    uct_cst: float = UCT_CST,
+    use_depth: bool = USE_DEPTH,
 ) -> list[tuple[Move, MonteCarloScore]]:
     frozen_board = board.get_frozen()  # hashable version of the board
 
@@ -230,18 +249,22 @@ def get_move_stats(
         use_depth=use_depth,
     )
 
-    return [
+    move_stats = [
         (node.parent_move, montecarlo)
         for node, montecarlo in game_tree.items()
         if node.board == frozen_board and node.parent_move is not None
-    ].sort(key=lambda x: x[1].times_visited)
+    ]
+    move_stats.sort(key=lambda x: x[1].times_visited, reverse=True)
+    return move_stats
 
-def get_best_play(board: Board,
+
+def get_best_play(
+    board: Board,
     current_player: Player,
     other_player: Player,
-    iterations: int = 1000,
-    uct_cst: float = 0.7,
-    use_depth: bool = True,
+    iterations: int = ITERATIONS,
+    uct_cst: float = UCT_CST,
+    use_depth: bool = USE_DEPTH,
 ) -> list[tuple[Move, MonteCarloScore]]:
 
     frozen_board = board.get_frozen()  # hashable version of the board
@@ -256,7 +279,8 @@ def get_best_play(board: Board,
     )
 
     best_play = list()
-    next_moves = [(node.parent_move, montecarlo)
+    next_moves = [
+        (node.parent_move, montecarlo)
         for node, montecarlo in game_tree.items()
         if node.board == frozen_board and node.parent_move is not None
     ]
@@ -265,13 +289,15 @@ def get_best_play(board: Board,
     move = max(next_moves, key=lambda x: x[1].times_visited)
     best_play.append(move)
     tmp_board = copy.deepcopy(board)
-    while(1):
-        tmp_board.play(move)
-        next_moves = [(node.parent_move, montecarlo) for node, montecarlo in game_tree.items() if node.board == tmp_board.get_frozen()]
+    while 1:
+        tmp_board.play(move[0])
+        next_moves: list[tuple[Move | None, MonteCarloScore]] = [
+            (node.parent_move, montecarlo)
+            for node, montecarlo in game_tree.items()
+            if node.board == tmp_board.get_frozen()
+        ]
         if len(next_moves) == 0:
             break
         move = max(next_moves, key=lambda x: x[1].times_visited)
         best_play.append(move)
     return best_play
-
-

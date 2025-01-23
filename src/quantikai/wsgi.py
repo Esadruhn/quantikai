@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, session, jsonify
 import pathlib
 
 from quantikai import game, bot
+from quantikai.bot import montecarlo
 
 PLAYER_WIN_MSG = "Congratulations, you win!"
 BOT_WIN_MSG = "The bot wins!"
@@ -26,6 +27,7 @@ def home():
     session["board"] = board.to_json()
     session["human_player"] = human_player.to_json()
     session["bot_player"] = game.Player(color=game.Colors.RED).to_json()
+    session["next_player"] = "human_player"
     return render_template("index.html")
 
 
@@ -45,6 +47,7 @@ def human_turn():
 
     session["board"] = board.to_json()
     session["human_player"] = human_player.to_json()
+    session["next_player"] = "bot_player"
 
     return {
         "gameIsOver": game_is_over,
@@ -66,7 +69,7 @@ def bot_turn():
         game_is_over = True
         win_message = PLAYER_WIN_MSG
 
-    move = bot.get_best_move(board, bot_player, human_player)
+    move: game.Move = bot.get_best_move(board, bot_player, human_player)
     if move is None:
         game_is_over = True
         win_message = PLAYER_WIN_MSG
@@ -81,9 +84,37 @@ def bot_turn():
 
     session["board"] = board.to_json()
     session["bot_player"] = bot_player.to_json()
+    session["next_player"] = "human_player"
 
     return {
         "gameIsOver": game_is_over,
         "winMessage": win_message,
         "newMoves": [move.to_json()],
     }
+
+
+@app.post("/analysis")
+def get_board_analysis():
+    board = game.Board.from_json(session["board"])
+    human_player = game.Player.from_json(session["human_player"])
+    bot_player = game.Player.from_json(session["bot_player"])
+    if session["next_player"] == "human_player":
+        return montecarlo.get_move_stats(
+            board, human_player, bot_player
+        )
+    return montecarlo.get_move_stats(
+        board, bot_player, human_player
+    )
+
+@app.post("/gameprediction")
+def get_best_play():
+    board = game.Board.from_json(session["board"])
+    human_player = game.Player.from_json(session["human_player"])
+    bot_player = game.Player.from_json(session["bot_player"])
+    if session["next_player"] == "human_player":
+        return montecarlo.get_best_play(
+            board, human_player, bot_player
+        )
+    return montecarlo.get_best_play(
+        board, bot_player, human_player
+    )

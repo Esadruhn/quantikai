@@ -15,6 +15,7 @@ def get_best_move(
         other_player=other_player,
     )
 
+
 def _recursive_minmax(
     player_max: Colors,
     board: Board,

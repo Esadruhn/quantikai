@@ -14,7 +14,6 @@
     <body>
         <div class="sidebar">
             <button onClick="onClickNewGame()">New game</button>
-            <button id="modeButton" onClick="onClickChangeMode(this.attributes.mode.value)" mode="classic">Classic mode</button>
             <fieldset>
                 <legend>Select a pawn:</legend>
                 <ul class="flex-container longhand">
@@ -26,9 +25,12 @@
                     {% endfor %}
                 </ul>
             </fieldset>
+            <!-- TODO toggle switch to change mode -->
+            <button id="modeButton" onClick="onClickChangeMode(this.attributes.mode.value)" mode="classic">Classic mode</button>
             <div id="modeAnalysis" class="hidden">
                 <button id="buttonNextMove" onClick="onClickNextMove()">Next move</button>
                 <button onClick="showBoardAnalysis()">Board analysis</button>
+                <button onClick="showGamePrediction()">Game prediction</button>
             </div>
             <p id="msgBox"></p>
         </div>
@@ -57,6 +59,11 @@
                 {% endfor %}
             </div>
             {% endfor %}
+        </div>
+
+        <div class="sidebar-right">
+            <p id="board-analysis"></p>
+            <p id="game-prediction"></p>
         </div>
         <!-- inserting these scripts at the end to be able to use all the elements in the DOM -->
         <script src="/static/index.js"></script>

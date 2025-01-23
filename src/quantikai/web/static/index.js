@@ -17,6 +17,12 @@ function enableAllCellClicks (isAble) {
     }
   }
 }
+function waitForBotMsg () {
+  document.getElementById('msgBox').innerHTML = '<p class=\'wait msg\'>The bot is thinking...</p>'
+}
+function errorMsg (error) { 
+  document.getElementById('msgBox').innerHTML = '<p class=\'error msg\'>' + error + '</p>'
+}
 function updateBoard(newMoves) {
   for (const idx in newMoves) {
     const newMove = newMoves[idx]
@@ -62,7 +68,7 @@ function toJson (response) {
   return response.json().then(response => { throw new Error(response.text) })
 }
 function botTurn () {
-  document.getElementById('msgBox').innerHTML = '<p class=\'wait msg\'>The bot is thinking...</p>'
+  waitForBotMsg()
   fetchPostRequest('bot')
     .then(applyPlayerTurn)
     .then(function (isWin) {
@@ -72,11 +78,10 @@ function botTurn () {
         enableAllCellClicks(true)
       }
       enableNextMoveClick(false)
-    })
+    }).catch((error) => { errorMsg(error) })
 }
 function onClickCell (x, y) {
   const pawn = document.querySelector('input[name="pawn-select"]:checked').getAttribute('val')
-  console.log(pawn)
 
   // Delete the error message
   document.getElementById('msgBox').innerHTML = ''
@@ -92,7 +97,7 @@ function onClickCell (x, y) {
       }
     })
     .catch((error) => {
-      document.getElementById('msgBox').innerHTML = '<p class=\'error msg\'>' + error + '</p>'
+      errorMsg(error)
       // Enable click events again
       enableAllCellClicks(true)
     })
@@ -118,12 +123,31 @@ function onClickNextMove () {
   enableNextMoveClick(false)
   botTurn()
 }
-function showBoardAnalysis () {
-  fetch('http://127.0.0.1:5000/', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
+function showBoardAnalysis() {
+  waitForBotMsg()
+  fetchPostRequest('analysis').then(
+    function (response) {
+      let responseDisplay = '<p>Board analysis: score for each possible bot move, starting with the best one.</p><ol>'
+      for (const item of response) {
+        responseDisplay += '<li>' + JSON.stringify(item) + '</li>'
+      }
+      responseDisplay += '</ol>'
+      document.getElementById('board-analysis').innerHTML = responseDisplay
+      document.getElementById('msgBox').innerHTML = ''
     }
-  })
-    .then(toJson)
+  ).catch((error) => { errorMsg(error) })
+}
+function showGamePrediction() {
+  waitForBotMsg()
+  fetchPostRequest('gameprediction').then(
+    function (response) {
+      let responseDisplay = '<p>Game prediction: which moves will be played up to the end</p><ol>'
+      for (const item of response) {
+        responseDisplay += '<li>' + JSON.stringify(item) + '</li>'
+      }
+      responseDisplay += '</ol>'
+      document.getElementById('game-prediction').innerHTML = responseDisplay
+      document.getElementById('msgBox').innerHTML = ''
+    }
+  ).catch((error) => { errorMsg(error) })
 }

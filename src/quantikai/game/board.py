@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from typing import Generator
 import json
 
+
 from quantikai.game.exceptions import InvalidMoveError
 from quantikai.game.enums import Colors, Pawns
 from quantikai.game.move import Move
@@ -9,17 +10,17 @@ from quantikai.game.move import Move
 
 @dataclass(frozen=True, eq=True)
 class FrozenBoard:
-    board: tuple[tuple[Pawns, Colors]]
+    board: tuple[tuple[Pawns, Colors] | None]
 
 
 @dataclass
 class Board:
-    board: list[list[tuple[Pawns, Colors]]] = field(
+    board: list[list[tuple[Pawns, Colors] | None]] = field(
         default_factory=lambda: [[None for _ in range(4)] for _ in range(4)]
     )
 
     @classmethod
-    def from_json(cls, body):
+    def from_json(cls, body: list[list[tuple[str, str] | None]]):
         # TODO check values in body
         return cls(
             board=[
@@ -91,7 +92,7 @@ class Board:
             set[Move]: _description_
         """
         if optimize:
-            pawns_on_board = set()
+            pawns_on_board: set[Move] = set()
             for x in range(len(self.board)):
                 for y in range(len(self.board)):
                     if self.board[x][y] is not None:
@@ -164,7 +165,7 @@ class Board:
                 if self.board[x][y] is not None:
                     moves -= {Move(x, y, pawn, color) for pawn in pawns}
                     if self.board[x][y][1] == opponent_color:
-                        opponent_pawn = self.board[x][y][0]
+                        opponent_pawn: Pawns = self.board[x][y][0]
                         moves -= {
                             Move(i, y, opponent_pawn, color)
                             for i in range(len(self.board))
@@ -225,13 +226,15 @@ class Board:
     def _move_is_a_win(self, x: int, y: int):
         return self._row_win(x) or self._column_win(y) or self._section_win(x, y)
 
-    def _ctxt(self, txt: str, color: Colors = None) -> str:
-        if color:
-            txt = color.value + txt + "\033[0m"
+    def _ctxt(self, txt: str, color: Colors | None = None) -> str:
+        if color == "BLUE":
+            txt = "\033[44m" + txt + "\033[0m"
+        if color == "RED":
+            txt = "\033[41m" + txt + "\033[0m"
         return txt
 
     def _row_win(self, x: int):
-        others = set()
+        others: set[Pawns] = set()
         for element in self.board[x]:
             if not element or element[0] in others:
                 return False
@@ -239,15 +242,15 @@ class Board:
         return True
 
     def _column_win(self, y: int):
-        others = set()
+        others: set[Pawns] = set()
         for row in self.board:
-            if not row[y] or row[y][0] in others:
+            if row[y] is None or row[y][0] in others:
                 return False
             others.add(row[y][0])
         return True
 
     def _section_win(self, x: int, y: int):
-        others = set()
+        others: set[Pawns] = set()
         for i, j in self._get_section_elements(x, y):
             element = self.board[i][j]
             if not element or element[0] in others:

@@ -10,6 +10,7 @@ from quantikai.game import Board, Pawns, Colors, Player, Move
 
 TIMEOUT = 60
 
+
 def timeit(f, n_iter=100):
     """timeit decorator"""
 
