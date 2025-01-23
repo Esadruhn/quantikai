@@ -47,10 +47,9 @@ def human_turn():
     session["human_player"] = human_player.to_json()
 
     return {
-        "game_is_over": game_is_over,
-        "win_message": PLAYER_WIN_MSG,
-        "new_moves": [move.to_json()],
-        "new_pawns": session["human_player"]["pawns"],
+        "gameIsOver": game_is_over,
+        "winMessage": PLAYER_WIN_MSG,
+        "newMoves": [move.to_json()],
     }
 
 
@@ -84,8 +83,7 @@ def bot_turn():
     session["bot_player"] = bot_player.to_json()
 
     return {
-        "game_is_over": game_is_over,
-        "win_message": win_message,
-        "new_moves": [move.to_json()],
-        "new_pawns": session["bot_player"]["pawns"],
+        "gameIsOver": game_is_over,
+        "winMessage": win_message,
+        "newMoves": [move.to_json()],
     }
