@@ -2,11 +2,12 @@ import copy
 import math
 from dataclasses import dataclass
 
-from quantikai.game import Board, FrozenBoard, Player, Pawns, Colors, Move
+from quantikai.game import Board, FrozenBoard, Player, Move
 
 DEFAULT_UCT: float = 10000  # + infinite
 ITERATIONS = 5000
-UCT_CST = 0.7
+# higher value to increase exploration, lower for exploitation
+UCT_CST = 1
 USE_DEPTH = True
 
 
@@ -149,11 +150,11 @@ def _montecarlo_algo(
         while len(iteration_nodes) > 0:
             node = iteration_nodes.pop()
             game_tree[node].times_visited += 1
-            adjustable = 16 if use_depth else 1
+            reward = depth_reward if use_depth else 1
             if is_current:
-                game_tree[node].score += depth_reward
+                game_tree[node].score += reward
             else:
-                game_tree[node].score += adjustable - depth_reward
+                game_tree[node].score -= reward
             is_current = not is_current
     return game_tree
 

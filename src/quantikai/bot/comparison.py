@@ -79,6 +79,12 @@ def get_method_times():
     idx = 0
     result_file = pathlib.Path("bot_algo_time.json")
     current_color = Colors.BLUE
+    times["montecarlo"]["args"] = {
+        "iterations": 1000,
+        "uct_cst": 2,
+        "use_depth": True,
+    }
+    times["minmax"]["args"] = {}
 
     boards, players = init_test_values()
     other_player = players[1]
@@ -88,11 +94,15 @@ def get_method_times():
                 board=board,
                 current_player=player,
                 other_player=other_player,
+                **times["minmax"]["args"]
             )
             times["minmax"][idx] = time_res_min
 
         tim_res_mont = timeit(montecarlo.get_best_move, n_iter=n_iter)(
-            board=board, current_player=player, other_player=other_player
+            board=board,
+            current_player=player,
+            other_player=other_player,
+            **times["montecarlo"]["args"]
         )
         times["montecarlo"][idx] = tim_res_mont
 
