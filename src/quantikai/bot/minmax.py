@@ -1,13 +1,13 @@
 import copy
 
-from quantikai.game import Board, Player, Pawns, Colors, Move
+from quantikai.game import Board, Player, Colors, Move
 
 
 def get_best_move(
     board: Board,
     current_player: Player,
     other_player: Player,
-) -> tuple[int, Move]:
+) -> tuple[int | None, Move | None]:
     return _recursive_minmax(
         player_max=current_player.color,
         board=board,
@@ -22,7 +22,7 @@ def _recursive_minmax(
     current_player: Player,
     other_player: Player,
     depth: int = 0,
-) -> tuple[int, tuple[int, int, Pawns, Colors]]:
+) -> tuple[int | None, Move | None]:
     """
 
     Args:
@@ -59,11 +59,12 @@ def _recursive_minmax(
         tmp_player.remove(move.pawn)
 
         move_score = None
-        if is_a_win and tmp_player.color == player_max:
-            move_score = 1
-        if is_a_win and tmp_player.color != player_max:
-            move_score = -1
-        if not is_a_win:
+        if is_a_win:
+            if tmp_player.color == player_max:
+                move_score = 1
+            else:
+                move_score = -1
+        else:
             move_score, _ = _recursive_minmax(
                 player_max=player_max,
                 board=tmp_board,

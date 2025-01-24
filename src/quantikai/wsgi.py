@@ -95,12 +95,13 @@ def bot_turn():
 
 @app.post("/analysis")
 def get_board_analysis():
+    depth = int(request.get_json().get("depth", 0))
     board = game.Board.from_json(session["board"])
     human_player = game.Player.from_json(session["human_player"])
     bot_player = game.Player.from_json(session["bot_player"])
     if session["next_player"] == "human_player":
-        return montecarlo.get_move_stats(board, human_player, bot_player)
-    return montecarlo.get_move_stats(board, bot_player, human_player)
+        return montecarlo.get_move_stats(board, human_player, bot_player, depth=depth)
+    return montecarlo.get_move_stats(board, bot_player, human_player, depth=depth)
 
 
 @app.post("/gameprediction")

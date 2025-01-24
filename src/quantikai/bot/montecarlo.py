@@ -51,15 +51,17 @@ def _explore_node(
     board: Board,
     player: Player,
     uct_cst: float,
-) -> tuple[bool, Node | None, Player, Board, dict[Node, MonteCarloScore]]:
+) -> tuple[bool, Node | None]:
     """Explore one node: compute children nodes and execute one.
 
     Returns:
         - game is over
+        - it is a win for the current player
         - explored node (None if there is no possible move)
-        - updated player
-        - updated board
-        - updated game tree (computed the scores of the possible next nodes)
+    Updates:
+        - player
+        - board
+        - game tree (computed the scores of the possible next nodes)
     """
 
     possible_moves = board.get_possible_moves(
@@ -70,7 +72,7 @@ def _explore_node(
 
     # end case: the parent node is a leaf node
     if len(possible_moves) == 0:
-        return True, None, player, board, game_tree
+        return True, None
 
     # Choose the node with the best trade-off exploration/exploitation
     node_to_explore = None
@@ -92,10 +94,7 @@ def _explore_node(
     is_win = board.play(node_to_explore.parent_move)
     player.remove(node_to_explore.parent_move.pawn)
 
-    if is_win:
-        return True, node_to_explore, player, board, game_tree
-
-    return False, node_to_explore, player, board, game_tree
+    return is_win, node_to_explore
 
 
 def _montecarlo_algo(
@@ -133,7 +132,7 @@ def _montecarlo_algo(
         while 1:
             is_current = not is_current
             player = tmp_player if is_current else tmp_other
-            game_is_over, node_to_explore, player, tmp_board, game_tree = _explore_node(
+            game_is_over, node_to_explore = _explore_node(
                 game_tree=game_tree,
                 parent_node=parent_node,
                 board=tmp_board,
@@ -147,15 +146,33 @@ def _montecarlo_algo(
             depth_reward -= 1
 
         # Backtrack the scores and iterations
+        reward = None
+        if node_to_explore is None:
+            # current_player lost
+            if is_current:
+                reward = 0
+            else:
+                reward = 1
+        else:
+            # current_player wins
+            if is_current:
+                reward = 1
+            else:
+                reward = 0
+        if use_depth:
+            reward = reward * use_depth
+
         while len(iteration_nodes) > 0:
             node = iteration_nodes.pop()
             game_tree[node].times_visited += 1
-            reward = depth_reward if use_depth else 1
-            if is_current:
-                game_tree[node].score += reward
-            else:
-                game_tree[node].score -= reward
+            game_tree[node].score += reward
             is_current = not is_current
+            if reward == 0:
+                reward = 1
+                if use_depth:
+                    reward = use_depth
+            else:
+                reward = 0
     return game_tree
 
 
@@ -220,7 +237,7 @@ def get_best_move(
 
     for node, montecarlo in game_tree.items():
         if node.board == frozen_board and node.parent_move is not None:
-            # This should never trigger unless nb of iterations < nb of possible moves
+            # This will trigger if nb of iterations < nb of possible moves
             assert montecarlo.times_visited > 0, "The node has never been visited."
             if n_visited is None or montecarlo.times_visited > n_visited:
                 best_move = node.parent_move
@@ -229,10 +246,59 @@ def get_best_move(
     return (winning_avg, best_move)
 
 
+def _get_best_play_from_game_tree(
+    frozen_board: FrozenBoard,
+    game_tree: dict[Node, MonteCarloScore],
+    depth: int,
+) -> list[tuple[Node, MonteCarloScore]]:
+    best_node = None
+    best_montecarlo = None
+    for node, montecarlo in game_tree.items():
+        if (
+            node.board == frozen_board
+            and node.parent_move is not None
+            and (
+                best_montecarlo is None
+                or montecarlo.times_visited > best_montecarlo.times_visited
+            )
+        ):
+            best_node = node
+            best_montecarlo = montecarlo
+    if best_node is None:
+        return list()
+
+    best_play = [(best_node, best_montecarlo)]
+    tmp_board = Board(board=frozen_board.board)
+
+    idx = 0
+    while 1:
+        if idx >= depth:
+            break
+
+        tmp_board.play(best_node.parent_move)
+        tmp_frozen_board = tmp_board.get_frozen()
+        best_node = None
+        best_montecarlo = None
+        for node, montecarlo in game_tree.items():
+            if node.board == tmp_frozen_board and (
+                best_montecarlo is None
+                or montecarlo.times_visited > best_montecarlo.times_visited
+            ):
+                best_node = node
+                best_montecarlo = montecarlo
+
+        if best_node is None:
+            break
+        best_play.append((best_node, best_montecarlo))
+        idx += 1
+    return best_play
+
+
 def get_move_stats(
     board: Board,
     current_player: Player,
     other_player: Player,
+    depth: int = 0,
     iterations: int = ITERATIONS,
     uct_cst: float = UCT_CST,
     use_depth: bool = USE_DEPTH,
@@ -247,11 +313,18 @@ def get_move_stats(
         uct_cst=uct_cst,
         use_depth=use_depth,
     )
+    best_play = _get_best_play_from_game_tree(
+        frozen_board=frozen_board,
+        game_tree=game_tree,
+        depth=depth,
+    )
+    if len(best_play) == 0:
+        return list()
 
     move_stats = [
         (node.parent_move, montecarlo)
         for node, montecarlo in game_tree.items()
-        if node.board == frozen_board and node.parent_move is not None
+        if node.board == best_play[-1][0].board and node.parent_move is not None
     ]
     move_stats.sort(key=lambda x: x[1].times_visited, reverse=True)
     return move_stats
@@ -261,10 +334,11 @@ def get_best_play(
     board: Board,
     current_player: Player,
     other_player: Player,
+    depth: int = 16,
     iterations: int = ITERATIONS,
     uct_cst: float = UCT_CST,
     use_depth: bool = USE_DEPTH,
-) -> list[tuple[Move, MonteCarloScore]]:
+) -> list[tuple[Node, MonteCarloScore]]:
 
     frozen_board = board.get_frozen()  # hashable version of the board
 
@@ -277,26 +351,6 @@ def get_best_play(
         use_depth=use_depth,
     )
 
-    best_play = list()
-    next_moves = [
-        (node.parent_move, montecarlo)
-        for node, montecarlo in game_tree.items()
-        if node.board == frozen_board and node.parent_move is not None
-    ]
-    if len(next_moves) == 0:
-        return []
-    move = max(next_moves, key=lambda x: x[1].times_visited)
-    best_play.append(move)
-    tmp_board = copy.deepcopy(board)
-    while 1:
-        tmp_board.play(move[0])
-        next_moves: list[tuple[Move | None, MonteCarloScore]] = [
-            (node.parent_move, montecarlo)
-            for node, montecarlo in game_tree.items()
-            if node.board == tmp_board.get_frozen()
-        ]
-        if len(next_moves) == 0:
-            break
-        move = max(next_moves, key=lambda x: x[1].times_visited)
-        best_play.append(move)
-    return best_play
+    return _get_best_play_from_game_tree(
+        frozen_board=frozen_board, game_tree=game_tree, depth=depth
+    )

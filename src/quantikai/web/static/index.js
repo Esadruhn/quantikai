@@ -1,13 +1,13 @@
 const CLASSIC = 'classic'
 const ANALYSIS = 'analysis'
 
-function enableNextMoveClick (isAble) {
+function enableNextMoveClick(isAble) {
   if (isAble) {
     document.getElementById('buttonNextMove').onclick = onClickNextMove
   } else { document.getElementById('buttonNextMove').onclick = null }
 }
 
-function enableAllCellClicks (isAble) {
+function enableAllCellClicks(isAble) {
   const cells = document.getElementsByClassName('cell')
   for (const cell of cells) {
     if (isAble) {
@@ -17,10 +17,10 @@ function enableAllCellClicks (isAble) {
     }
   }
 }
-function waitForBotMsg () {
+function waitForBotMsg() {
   document.getElementById('msgBox').innerHTML = '<p class=\'wait msg\'>The bot is thinking...</p>'
 }
-function errorMsg (error) { 
+function errorMsg(error) {
   document.getElementById('msgBox').innerHTML = '<p class=\'error msg\'>' + error + '</p>'
 }
 function updateBoard(newMoves) {
@@ -46,7 +46,7 @@ function applyPlayerTurn(jsonResponse) {
   return jsonResponse.gameIsOver
 }
 
-async function fetchPostRequest (path, body = null) {
+async function fetchPostRequest(path, body = null) {
   const url = 'http://127.0.0.1:5000/' + path
 
   const params = {
@@ -61,13 +61,13 @@ async function fetchPostRequest (path, body = null) {
   return fetch(url, params).then(toJson)
 }
 
-function toJson (response) {
+function toJson(response) {
   if (response.ok) {
     return response.json()
   }
   return response.json().then(response => { throw new Error(response.text) })
 }
-function botTurn () {
+function botTurn() {
   waitForBotMsg()
   fetchPostRequest('bot')
     .then(applyPlayerTurn)
@@ -80,7 +80,7 @@ function botTurn () {
       enableNextMoveClick(false)
     }).catch((error) => { errorMsg(error) })
 }
-function onClickCell (x, y) {
+function onClickCell(x, y) {
   const pawn = document.querySelector('input[name="pawn-select"]:checked').getAttribute('val')
 
   // Delete the error message
@@ -89,7 +89,7 @@ function onClickCell (x, y) {
   // Disable all onClick events
   enableAllCellClicks(false)
 
-  fetchPostRequest('', { x: x | null, y: y | null, pawn: pawn })
+  fetchPostRequest('', { x: x | null, y: y | null, pawn })
     .then(applyPlayerTurn)
     .then(function (isWin) {
       if (!isWin && document.getElementById('modeButton').getAttribute('mode') === CLASSIC) { botTurn() } else if (!isWin) {
@@ -107,7 +107,7 @@ function onClickNewGame() {
   location.reload()
 }
 
-function onClickChangeMode (currentMode) {
+function onClickChangeMode(currentMode) {
   if (currentMode === CLASSIC) {
     document.getElementById('modeButton').setAttribute('mode', ANALYSIS)
     document.getElementById('modeButton').innerHTML = 'Analysis mode'
@@ -119,17 +119,18 @@ function onClickChangeMode (currentMode) {
   }
 }
 
-function onClickNextMove () {
+function onClickNextMove() {
   enableNextMoveClick(false)
   botTurn()
 }
 function showBoardAnalysis() {
   waitForBotMsg()
-  fetchPostRequest('analysis').then(
+  const depth = document.getElementById('boardAnalysisDepth').value
+  fetchPostRequest('analysis', {depth: depth}).then(
     function (response) {
       let responseDisplay = '<p>Board analysis: score for each possible bot move, starting with the best one.</p><ol>'
       for (const item of response) {
-        responseDisplay += '<li>' + JSON.stringify(item) + '</li>'
+        responseDisplay += '<li>' + JSON.stringify([[item[0].x, item[0].y, item[0].pawn, item[0].color], item[1]]) + '</li>'
       }
       responseDisplay += '</ol>'
       document.getElementById('board-analysis').innerHTML = responseDisplay
@@ -143,7 +144,7 @@ function showGamePrediction() {
     function (response) {
       let responseDisplay = '<p>Game prediction: which moves will be played up to the end</p><ol>'
       for (const item of response) {
-        responseDisplay += '<li>' + JSON.stringify(item) + '</li>'
+        responseDisplay += '<li>' + JSON.stringify([[item[0].parent_move.x, item[0].parent_move.y, item[0].parent_move.pawn, item[0].parent_move.color], item[1]]) + '</li>'
       }
       responseDisplay += '</ol>'
       document.getElementById('game-prediction').innerHTML = responseDisplay

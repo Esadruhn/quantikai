@@ -30,6 +30,9 @@
             <div id="modeAnalysis" class="hidden">
                 <button id="buttonNextMove" onClick="onClickNextMove()">Next move</button>
                 <button onClick="showBoardAnalysis()">Board analysis</button>
+                <div class="slidecontainer">
+                    <input type="range" min="0" max="16" value="0" class="slider" id="boardAnalysisDepth">
+                </div>
                 <button onClick="showGamePrediction()">Game prediction</button>
             </div>
             <p id="msgBox"></p>
