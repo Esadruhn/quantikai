@@ -81,6 +81,10 @@ function botTurn() {
     }).catch((error) => { errorMsg(error) })
 }
 function onClickCell(x, y) {
+  const hasCheckedPawn = document.querySelector('input[name="pawn-select"]:checked') !== null
+  if (!hasCheckedPawn) {
+    throw new Error('Please select a pawn.')
+  }
   const pawn = document.querySelector('input[name="pawn-select"]:checked').getAttribute('val')
 
   // Delete the error message
@@ -92,7 +96,7 @@ function onClickCell(x, y) {
   fetchPostRequest('', { x: x | null, y: y | null, pawn })
     .then(applyPlayerTurn)
     .then(function (isWin) {
-      if (!isWin && document.getElementById('modeButton').getAttribute('mode') === CLASSIC) { botTurn() } else if (!isWin) {
+      if (!isWin && !document.getElementById('modeButtonAnalysis').getAttribute('disabled')) { botTurn() } else if (!isWin) {
         enableNextMoveClick(true)
       }
     })
@@ -109,13 +113,13 @@ function onClickNewGame() {
 
 function onClickChangeMode(currentMode) {
   if (currentMode === CLASSIC) {
-    document.getElementById('modeButton').setAttribute('mode', ANALYSIS)
-    document.getElementById('modeButton').innerHTML = 'Analysis mode'
-    document.getElementById('modeAnalysis').classList.remove('hidden')
-  } else if (currentMode === ANALYSIS) {
-    document.getElementById('modeButton').setAttribute('mode', CLASSIC)
-    document.getElementById('modeButton').innerHTML = 'Classic mode'
+    document.getElementById('modeButtonClassic').setAttribute('disabled', '')
+    document.getElementById('modeButtonAnalysis').removeAttribute('disabled')
     document.getElementById('modeAnalysis').classList.add('hidden')
+  } else if (currentMode === ANALYSIS) {
+    document.getElementById('modeButtonAnalysis').setAttribute('disabled', '')
+    document.getElementById('modeButtonClassic').removeAttribute('disabled')
+    document.getElementById('modeAnalysis').classList.remove('hidden')
   }
 }
 
@@ -126,7 +130,7 @@ function onClickNextMove() {
 function showBoardAnalysis() {
   waitForBotMsg()
   const depth = document.getElementById('boardAnalysisDepth').value
-  fetchPostRequest('analysis', {depth: depth}).then(
+  fetchPostRequest('analysis', { depth }).then(
     function (response) {
       let responseDisplay = '<p>Board analysis: score for each possible bot move, starting with the best one.</p><ol>'
       for (const item of response) {
