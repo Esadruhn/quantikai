@@ -25,11 +25,12 @@
                     {% endfor %}
                 </ul>
             </fieldset>
-            <div class="toggle">
+            <article class="msg" id="msgBox"></article>
+            <article class="toggle">
                 <button disabled class="big" id="modeButtonClassic" onClick="onClickChangeMode('classic')">Classic</button>
                 <button class="big" id="modeButtonAnalysis" onClick="onClickChangeMode('analysis')">Analysis</button>
-            </div>
-            <div id="modeAnalysis" class="column hidden">
+            </article>
+            <article id="modeAnalysis" class="column hidden">
                 <button id="buttonNextMove" onClick="onClickNextMove()">Next move</button>
                 <button onClick="showGamePrediction()">Game prediction</button>
                 <fieldset>
@@ -41,8 +42,7 @@
                     </div>
                     <button onClick="showBoardAnalysis()">Compute</button>
                 </fieldset>
-            </div>
-            <p id="msgBox"></p>
+            </article>
         </aside>
     
         <section class="board">

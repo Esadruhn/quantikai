@@ -18,10 +18,20 @@ function enableAllCellClicks(isAble) {
   }
 }
 function waitForBotMsg() {
-  document.getElementById('msgBox').innerHTML = '<p class=\'wait msg\'>The bot is thinking...</p>'
+  document.getElementById('msgBox').classList.toggle('wait')
+  document.getElementById('msgBox').innerHTML = 'The bot is thinking...'
 }
 function errorMsg(error) {
-  document.getElementById('msgBox').innerHTML = '<p class=\'error msg\'>' + error + '</p>'
+  document.getElementById('msgBox').classList.toggle('error')
+  document.getElementById('msgBox').innerHTML = error
+}
+function winMsg(msg) {
+  document.getElementById('msgBox').classList.toggle('win')
+  document.getElementById('msgBox').innerHTML = msg
+}
+function clearMsg() {
+  document.getElementById('msgBox').classList.remove('error', 'win', 'wait')
+  document.getElementById('msgBox').innerHTML = ''
 }
 function updateBoard(newMoves) {
   for (const idx in newMoves) {
@@ -41,7 +51,7 @@ function applyPlayerTurn(jsonResponse) {
   updateBoard(jsonResponse.newMoves)
   // Win or lose message
   if (jsonResponse.gameIsOver) {
-    document.getElementById('msgBox').innerHTML = '<p class=\'win msg\'>' + jsonResponse.winMessage + '</p>'
+    winMsg(jsonResponse.winMessage)
   }
   return jsonResponse.gameIsOver
 }
@@ -73,7 +83,7 @@ function botTurn() {
     .then(applyPlayerTurn)
     .then(function (isWin) {
       if (!isWin) {
-        document.getElementById('msgBox').innerHTML = ''
+        clearMsg()
         // Enable click events again
         enableAllCellClicks(true)
       }
@@ -88,7 +98,7 @@ function onClickCell(x, y) {
   const pawn = document.querySelector('input[name="pawn-select"]:checked').getAttribute('val')
 
   // Delete the error message
-  document.getElementById('msgBox').innerHTML = ''
+  clearMsg()
 
   // Disable all onClick events
   enableAllCellClicks(false)
@@ -96,7 +106,7 @@ function onClickCell(x, y) {
   fetchPostRequest('', { x: x | null, y: y | null, pawn })
     .then(applyPlayerTurn)
     .then(function (isWin) {
-      if (!isWin && !document.getElementById('modeButtonAnalysis').getAttribute('disabled')) { botTurn() } else if (!isWin) {
+      if (!isWin && document.getElementById('modeButtonAnalysis').getAttribute('disabled') === null) { botTurn() } else if (!isWin) {
         enableNextMoveClick(true)
       }
     })
