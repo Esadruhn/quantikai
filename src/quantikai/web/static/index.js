@@ -18,15 +18,18 @@ function enableAllCellClicks(isAble) {
   }
 }
 function waitForBotMsg() {
-  document.getElementById('msgBox').classList.toggle('wait')
+  clearMsg()
+  document.getElementById('msgBox').classList.add('wait')
   document.getElementById('msgBox').innerHTML = 'The bot is thinking...'
 }
 function errorMsg(error) {
-  document.getElementById('msgBox').classList.toggle('error')
+  clearMsg()
+  document.getElementById('msgBox').classList.add('error')
   document.getElementById('msgBox').innerHTML = error
 }
 function winMsg(msg) {
-  document.getElementById('msgBox').classList.toggle('win')
+  clearMsg()
+  document.getElementById('msgBox').classList.add('win')
   document.getElementById('msgBox').innerHTML = msg
 }
 function clearMsg() {
