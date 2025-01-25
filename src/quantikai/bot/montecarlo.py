@@ -7,7 +7,7 @@ from quantikai.game import Board, FrozenBoard, Player, Move
 DEFAULT_UCT: float = 10000  # + infinite
 ITERATIONS = 5000
 # higher value to increase exploration, lower for exploitation
-UCT_CST = 1
+UCT_CST = 0.7
 USE_DEPTH = True
 
 
@@ -148,17 +148,11 @@ def _montecarlo_algo(
         # Backtrack the scores and iterations
         reward = None
         if node_to_explore is None:
-            # current_player lost
-            if is_current:
-                reward = 0
-            else:
-                reward = 1
+            # current_player loses
+            reward = 0
         else:
             # current_player wins
-            if is_current:
-                reward = 1
-            else:
-                reward = 0
+            reward = 1
         if use_depth:
             reward = reward * use_depth
 
