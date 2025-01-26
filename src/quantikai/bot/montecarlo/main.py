@@ -29,19 +29,14 @@ def _explore_node(
         - board
         - game tree (computed the scores of the possible next nodes)
     """
-    possible_moves = set()
-    if game_tree.is_computed(parent_node):
-        possible_moves = game_tree.get_possible_moves(parent_node)
-    else:
-        possible_moves = board.get_possible_moves(
-            player.pawns,
-            player.color,
-            optimize=True,
-        )
+    possible_moves = board.get_possible_moves(
+        player.pawns,
+        player.color,
+        optimize=True,
+    )
 
     # end case: the parent node is a leaf node
     if len(possible_moves) == 0:
-        game_tree.compute_node_child(node=parent_node, is_leaf=True)
         return True, None
 
     # Choose the node with the best trade-off exploration/exploitation
@@ -64,10 +59,6 @@ def _explore_node(
     # Play the chosen move and evaluate: leaf node or keep going
     is_win = board.play(node_to_explore.move_to_play)
     player.remove(node_to_explore.move_to_play.pawn)
-
-    if is_win:
-        # then the node_to_explore is computed: no children
-        game_tree.compute_node_child(node=node_to_explore, is_leaf=True, board=board)
 
     return is_win, node_to_explore
 

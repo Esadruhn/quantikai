@@ -1,24 +1,15 @@
 import math
 from dataclasses import dataclass
 
-from quantikai.game import FrozenBoard
-
-DEFAULT_UCT: float = 10000  # + infinite
+DEFAULT_UCT: float = math.inf
 # higher value to increase exploration, lower for exploitation
 UCT_CST = 0.7
-
 
 @dataclass
 class MonteCarloScore:
     """Compute values for each node
     for the Monte-Carlo UCT algorithm.
     """
-
-    is_computed: bool = False  # child moves have been added to the game tree
-    is_leaf: bool = False  # no child move
-    child_board: FrozenBoard | None = (
-        None  # result of node.board.play(node.move_to_play)
-    )
     times_visited: int = 0  # Number of times the nodes has been visited
     score: int = 0  # Sum of the iteration rewards
     uct: float = (

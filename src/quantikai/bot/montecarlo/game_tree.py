@@ -33,34 +33,9 @@ class GameTree:
             times_parent_visited=times_visited,
         )
 
-    def compute_node_child(self, node: Node, is_leaf: bool, board: Board | None = None):
-        self._game_tree[node].is_computed = True
-        self._game_tree[node].is_leaf = is_leaf
-        if not is_leaf:
-            # if is_leaf, we keep child_board to None, storage opti
-            self._game_tree[node].child_board = board.get_frozen()
-
     def update(self, node: Node, reward: int):
         self._game_tree[node].times_visited += 1
         self._game_tree[node].score += reward
-
-    def is_computed(self, node: Node):
-        return self._game_tree[node].is_computed
-
-    def get_possible_moves(self, parent_node: Node) -> set[Move]:
-        possible_moves = set()
-        if not self._game_tree[parent_node].is_computed:
-            raise GameTreeError("Trying to get possible moves from uncomputed node.")
-        if not self._game_tree[parent_node].is_leaf:
-            # TODO - remove this when algo is properly tested and this is impossible
-            # assert game_tree[parent_node].child_board == board.get_frozen()
-            possible_moves = {
-                node.move_to_play
-                for node in self._game_tree
-                if node.board == self._game_tree[parent_node].child_board
-                and node.move_to_play is not None
-            }
-        return possible_moves
 
     def get_best_move(
         self, frozen_board: FrozenBoard
