@@ -1,5 +1,6 @@
 """Compare the execution time of each method"""
 
+import datetime
 import time
 import copy
 import pathlib
@@ -74,14 +75,19 @@ def init_test_values():
 
 def get_method_times():
 
-    n_iter = 1
-    times = {"n_iter": n_iter, "montecarlo": dict(), "minmax": dict()}
+    n_iter = 10
+    times = {
+        "n_iter": n_iter,
+        "timestamp": datetime.date.today(),
+        "montecarlo": dict(),
+        "minmax": dict(),
+    }
     idx = 0
     result_file = pathlib.Path("bot_algo_time.json")
     current_color = Colors.BLUE
     times["montecarlo"]["args"] = {
         "iterations": 1000,
-        "uct_cst": 2,
+        "uct_cst": 0.7,
         "use_depth": True,
     }
     times["minmax"]["args"] = {}

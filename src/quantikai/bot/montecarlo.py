@@ -309,14 +309,20 @@ class GameTreeDecoder(json.JSONDecoder):
 
     def object_hook(self, dct):
         if "node" in dct:
-            return (Node(
-                board=tuple(tuple(None if item is None else tuple(item) for item in row) for row in dct["node"]["board"]),
-                move_to_play=(
-                    None
-                    if dct["node"]["move_to_play"] is None
-                    else Move(**dct["node"]["move_to_play"])
+            return (
+                Node(
+                    board=tuple(
+                        tuple(None if item is None else tuple(item) for item in row)
+                        for row in dct["node"]["board"]
+                    ),
+                    move_to_play=(
+                        None
+                        if dct["node"]["move_to_play"] is None
+                        else Move(**dct["node"]["move_to_play"])
+                    ),
                 ),
-            ), MonteCarloScore(**dct["montecarlo"]))
+                MonteCarloScore(**dct["montecarlo"]),
+            )
         return dct
 
 
@@ -324,10 +330,7 @@ def _load_game_tree_from_file(game_tree_file):
     game_tree_as_list = json.loads(
         pathlib.Path(game_tree_file).read_text(), cls=GameTreeDecoder
     )
-    game_tree: dict[Node, MonteCarloScore] = {
-        n: m 
-        for n, m in game_tree_as_list
-    }
+    game_tree: dict[Node, MonteCarloScore] = {n: m for n, m in game_tree_as_list}
     return game_tree
 
 
