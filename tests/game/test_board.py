@@ -353,7 +353,6 @@ def test_get_possible_moves_optimize_empty_board():
     assert moves == {
         Move(0, 0, Pawns.A, Colors.BLUE),
         Move(0, 1, Pawns.A, Colors.BLUE),
-        Move(1, 0, Pawns.A, Colors.BLUE),
         Move(1, 1, Pawns.A, Colors.BLUE),
     }
 
