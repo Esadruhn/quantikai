@@ -161,7 +161,7 @@ function showGamePrediction() {
     function (response) {
       let responseDisplay = '<p>Game prediction: which moves will be played up to the end</p><ol>'
       for (const item of response) {
-        responseDisplay += '<li>' + JSON.stringify([[item[0].parent_move.x, item[0].parent_move.y, item[0].parent_move.pawn, item[0].parent_move.color], item[1]]) + '</li>'
+        responseDisplay += '<li>' + JSON.stringify([[item[0].move_to_play.x, item[0].move_to_play.y, item[0].move_to_play.pawn, item[0].move_to_play.color], item[1]]) + '</li>'
       }
       responseDisplay += '</ol>'
       document.getElementById('game-prediction').innerHTML = responseDisplay

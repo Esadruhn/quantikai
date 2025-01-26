@@ -1,7 +1,7 @@
 import math
 from dataclasses import dataclass
 
-DEFAULT_UCT: float = math.inf
+DEFAULT_UCT: float = 1000000
 # higher value to increase exploration, lower for exploitation
 UCT_CST = 0.7
 

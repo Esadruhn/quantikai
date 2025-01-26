@@ -1,6 +1,5 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Generator
-import json
 
 
 from quantikai.game.exceptions import InvalidMoveError
@@ -106,12 +105,11 @@ class Board:
                         )
             # Case 1: No pawn on the board
             if len(pawns_on_board) == 0:
-                # Only need to check for one pawn and one section because of symmetry
+                # Only need to check for one pawn and one section minus one cell because of symmetry
                 # Actually I am not even sure the first move matters
                 return {
                     Move(0, 0, Pawns.A, color),
                     Move(0, 1, Pawns.A, color),
-                    Move(1, 0, Pawns.A, color),
                     Move(1, 1, Pawns.A, color),
                 }
             # Case 2: 1 pawn on the board

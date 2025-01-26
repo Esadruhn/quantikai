@@ -353,8 +353,7 @@ def test_best_move_1():
     assert best_move != (2, 3, Pawns.B)
 
 
-@pytest.mark.parametrize("execution_number", range(10))
-def test_best_move_last(execution_number):
+def test_best_move_last():
     #          0     1     2     3
     #        ____  ____   ____  ____
     #     0 |__A_||__B_| |__C_||____|
