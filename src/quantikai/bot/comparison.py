@@ -78,7 +78,7 @@ def get_method_times():
     n_iter = 10
     times = {
         "n_iter": n_iter,
-        "timestamp": datetime.date.today(),
+        "timestamp": str(datetime.datetime.now()),
         "montecarlo": dict(),
         "minmax": dict(),
     }
