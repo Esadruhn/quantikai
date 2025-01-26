@@ -1,62 +1,21 @@
 import copy
-import math
-from dataclasses import dataclass, asdict, make_dataclass
+from dataclasses import asdict
 import pathlib
 import json
 
 from quantikai.game import Board, FrozenBoard, Player, Move
+from quantikai.bot.montecarlo.node import Node
+from quantikai.bot.montecarlo.score import MonteCarloScore
+from quantikai.bot.montecarlo.game_tree import GameTree
 
-DEFAULT_UCT: float = 10000  # + infinite
 ITERATIONS = 5000
+USE_DEPTH = True
 # higher value to increase exploration, lower for exploitation
 UCT_CST = 0.7
-USE_DEPTH = True
-
-
-@dataclass(frozen=True, eq=True)
-class Node:
-    """Hashable class to represent a node in a tree representation of the game.
-    A node is a state of the board and a move_to_play to apply to the board.
-    For the initial state of the game move_to_play is None.
-    """
-
-    board: FrozenBoard
-    move_to_play: Move | None = None
-
-    def to_json(self):
-        return {
-            "board": self.board.board,
-            "move_to_play": (
-                None if self.move_to_play is None else asdict(self.move_to_play)
-            ),
-        }
-
-
-@dataclass
-class MonteCarloScore:
-    """Compute values for each node
-    for the Monte-Carlo UCT algorithm.
-    """
-
-    times_visited: int = 0  # Number of times the nodes has been visited
-    score: int = 0  # Sum of the iteration rewards
-    uct: float = (
-        DEFAULT_UCT  # UCT value, that represents a trade-off exploration/exploitation
-    )
-
-
-def _montecarlo_uct(
-    score: int, times_visited: int, times_parent_visited: int, uct_cst: float
-) -> float:
-    if times_visited == 0:
-        return DEFAULT_UCT
-    return (score / times_visited) + 2 * uct_cst * math.sqrt(
-        2 * math.log(times_parent_visited) / times_visited
-    )
 
 
 def _explore_node(
-    game_tree: dict[Node, MonteCarloScore],
+    game_tree: GameTree,
     parent_node: Node,
     board: Board,
     player: Player,
@@ -73,15 +32,19 @@ def _explore_node(
         - board
         - game tree (computed the scores of the possible next nodes)
     """
-
-    possible_moves = board.get_possible_moves(
-        player.pawns,
-        player.color,
-        optimize=True,
-    )
+    possible_moves = set()
+    if game_tree.is_computed(parent_node):
+        possible_moves = game_tree.get_possible_moves(parent_node)
+    else:
+        possible_moves = board.get_possible_moves(
+            player.pawns,
+            player.color,
+            optimize=True,
+        )
 
     # end case: the parent node is a leaf node
     if len(possible_moves) == 0:
+        game_tree.compute_node_child(node=parent_node, is_leaf=True)
         return True, None
 
     # Choose the node with the best trade-off exploration/exploitation
@@ -89,20 +52,26 @@ def _explore_node(
     uct = None
     for pos_mov in possible_moves:
         node = Node(board=board.get_frozen(), move_to_play=pos_mov)
-        game_tree.setdefault(node, MonteCarloScore())
-        game_tree[node].uct = _montecarlo_uct(
-            score=game_tree[node].score,
-            times_visited=game_tree[node].times_visited,
-            times_parent_visited=game_tree[parent_node].times_visited,
+        new_uct = game_tree.add(
+            node=node,
+            parent_node=parent_node,
             uct_cst=uct_cst,
         )
-        if uct is None or game_tree[node].uct >= uct:
+        if uct is None or new_uct >= uct:
             node_to_explore = node
-            uct = game_tree[node].uct
+            uct = new_uct
+
+    if not game_tree.is_computed(parent_node):
+        # Compute the parent_node since all its children have been added to the game tree
+        game_tree.compute_node_child(node=parent_node, is_leaf=False, board=board)
 
     # Play the chosen move and evaluate: leaf node or keep going
     is_win = board.play(node_to_explore.move_to_play)
     player.remove(node_to_explore.move_to_play.pawn)
+
+    if is_win:
+        # then the node_to_explore is computed: no children
+        game_tree.compute_node_child(node=node_to_explore, is_leaf=True, board=board)
 
     return is_win, node_to_explore
 
@@ -114,15 +83,15 @@ def _montecarlo_algo(
     iterations: int,
     uct_cst: float,
     use_depth: bool,
-) -> dict[Node, MonteCarloScore]:
+) -> GameTree:
     """Execute the montecarlo algorithm, up to generating
     the 'game tree' i.e. the graph of the moves with their
     scores.
     """
     frozen_board = board.get_frozen()  # hashable version of the board
     root_node = Node(board=frozen_board)
-    game_tree = {root_node: MonteCarloScore()}
-    # TODO? save game tree for further iterations in one game? some must overlap
+    game_tree = GameTree()
+    game_tree.add(node=root_node, parent_node=None, uct_cst=uct_cst)
 
     for _ in range(iterations):
         is_current = False  # which player is playing
@@ -155,6 +124,7 @@ def _montecarlo_algo(
             if game_is_over:
                 break
             depth_reward -= 1
+            parent_node = node_to_explore
 
         # Backtrack the scores and iterations
         reward = None
@@ -169,8 +139,7 @@ def _montecarlo_algo(
 
         while len(iteration_nodes) > 0:
             node = iteration_nodes.pop()
-            game_tree[node].times_visited += 1
-            game_tree[node].score += reward
+            game_tree.update(node=node, reward=reward)
             is_current = not is_current
             if reward == 0:
                 reward = 1
@@ -228,7 +197,7 @@ def get_best_move(
     frozen_board = board.get_frozen()  # hashable version of the board
     game_tree = None
     if game_tree_file is not None:
-        game_tree = _load_game_tree_from_file(game_tree_file)
+        game_tree = GameTree.from_file(path=game_tree_file)
     else:
         game_tree = _montecarlo_algo(
             board=board,
@@ -239,20 +208,7 @@ def get_best_move(
             use_depth=use_depth,
         )
 
-    # Choose the most visited node
-    best_move = None
-    n_visited = None
-    winning_avg = None
-
-    for node, montecarlo in game_tree.items():
-        if node.board == frozen_board and node.move_to_play is not None:
-            # This will trigger if nb of iterations < nb of possible moves
-            assert montecarlo.times_visited > 0, "The node has never been visited."
-            if n_visited is None or montecarlo.times_visited > n_visited:
-                best_move = node.move_to_play
-                n_visited = montecarlo.times_visited
-                winning_avg = montecarlo.score / montecarlo.times_visited
-    return (winning_avg, best_move)
+    return game_tree.get_best_move(frozen_board)
 
 
 def _get_best_play_from_game_tree(
