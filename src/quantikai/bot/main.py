@@ -1,7 +1,10 @@
+import pathlib
 from quantikai.game import Board, Player, Move
 from quantikai.bot import minmax
 from quantikai.bot import montecarlo
 
+
+GAME_TREE_FILE = pathlib.Path("montecarlo_tree.json")
 
 def _switch_montecarlo_minmax(
     board: Board, current_player: Player, other_player: Player
@@ -11,7 +14,7 @@ def _switch_montecarlo_minmax(
     # Safer method would be to count on the board
     nb_pawns_on_board = 16 - len(current_player.pawns) - len(other_player.pawns)
     if nb_pawns_on_board <= 4:
-        return montecarlo.get_best_move
+        return lambda *args, **kwargs: montecarlo.get_best_move(*args, **kwargs, game_tree_file=GAME_TREE_FILE)
     return minmax.get_best_move
 
 

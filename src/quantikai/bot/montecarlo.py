@@ -1,6 +1,8 @@
 import copy
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict, make_dataclass
+import pathlib
+import json
 
 from quantikai.game import Board, FrozenBoard, Player, Move
 
@@ -14,12 +16,20 @@ USE_DEPTH = True
 @dataclass(frozen=True, eq=True)
 class Node:
     """Hashable class to represent a node in a tree representation of the game.
-    A node is a state of the board and a parent_move to apply to the board.
-    For the initial state of the game parent_move is None.
+    A node is a state of the board and a move_to_play to apply to the board.
+    For the initial state of the game move_to_play is None.
     """
 
     board: FrozenBoard
-    parent_move: Move | None = None
+    move_to_play: Move | None = None
+
+    def to_json(self):
+        return {
+            "board": self.board.board,
+            "move_to_play": (
+                None if self.move_to_play is None else asdict(self.move_to_play)
+            ),
+        }
 
 
 @dataclass
@@ -78,7 +88,7 @@ def _explore_node(
     node_to_explore = None
     uct = None
     for pos_mov in possible_moves:
-        node = Node(board=board.get_frozen(), parent_move=pos_mov)
+        node = Node(board=board.get_frozen(), move_to_play=pos_mov)
         game_tree.setdefault(node, MonteCarloScore())
         game_tree[node].uct = _montecarlo_uct(
             score=game_tree[node].score,
@@ -91,8 +101,8 @@ def _explore_node(
             uct = game_tree[node].uct
 
     # Play the chosen move and evaluate: leaf node or keep going
-    is_win = board.play(node_to_explore.parent_move)
-    player.remove(node_to_explore.parent_move.pawn)
+    is_win = board.play(node_to_explore.move_to_play)
+    player.remove(node_to_explore.move_to_play.pawn)
 
     return is_win, node_to_explore
 
@@ -128,6 +138,7 @@ def _montecarlo_algo(
         iteration_nodes = list([root_node])
         # The reward is higher if the game ends sooner
         depth_reward = 16
+        node_to_explore = None
 
         while 1:
             is_current = not is_current
@@ -177,7 +188,8 @@ def get_best_move(
     iterations: int = ITERATIONS,
     uct_cst: float = UCT_CST,
     use_depth: bool = USE_DEPTH,
-) -> tuple[int, Move]:
+    game_tree_file: pathlib.Path | None = None,
+) -> tuple[float, Move]:
     """http://www.incompleteideas.net/609%20dropbox/other%20readings%20and%20resources/MCTS-survey.pdf
     Upper Confidence Bounds for Trees (UCT)
 
@@ -211,18 +223,21 @@ def get_best_move(
         use_depth (bool, optional): Victory score is better if fewer moves are needed (between 16 and 1). Defaults to True
 
     Returns:
-        tuple[int, tuple[int, int, Pawns, Colors]]: _description_
+        tuple[float, Move]: _description_
     """
     frozen_board = board.get_frozen()  # hashable version of the board
-
-    game_tree = _montecarlo_algo(
-        board=board,
-        current_player=current_player,
-        other_player=other_player,
-        iterations=iterations,
-        uct_cst=uct_cst,
-        use_depth=use_depth,
-    )
+    game_tree = None
+    if game_tree_file is not None:
+        game_tree = _load_game_tree_from_file(game_tree_file)
+    else:
+        game_tree = _montecarlo_algo(
+            board=board,
+            current_player=current_player,
+            other_player=other_player,
+            iterations=iterations,
+            uct_cst=uct_cst,
+            use_depth=use_depth,
+        )
 
     # Choose the most visited node
     best_move = None
@@ -230,11 +245,11 @@ def get_best_move(
     winning_avg = None
 
     for node, montecarlo in game_tree.items():
-        if node.board == frozen_board and node.parent_move is not None:
+        if node.board == frozen_board and node.move_to_play is not None:
             # This will trigger if nb of iterations < nb of possible moves
             assert montecarlo.times_visited > 0, "The node has never been visited."
             if n_visited is None or montecarlo.times_visited > n_visited:
-                best_move = node.parent_move
+                best_move = node.move_to_play
                 n_visited = montecarlo.times_visited
                 winning_avg = montecarlo.score / montecarlo.times_visited
     return (winning_avg, best_move)
@@ -250,7 +265,7 @@ def _get_best_play_from_game_tree(
     for node, montecarlo in game_tree.items():
         if (
             node.board == frozen_board
-            and node.parent_move is not None
+            and node.move_to_play is not None
             and (
                 best_montecarlo is None
                 or montecarlo.times_visited > best_montecarlo.times_visited
@@ -269,7 +284,7 @@ def _get_best_play_from_game_tree(
         if idx >= depth:
             break
 
-        tmp_board.play(best_node.parent_move)
+        tmp_board.play(best_node.move_to_play)
         tmp_frozen_board = tmp_board.get_frozen()
         best_node = None
         best_montecarlo = None
@@ -288,6 +303,34 @@ def _get_best_play_from_game_tree(
     return best_play
 
 
+class GameTreeDecoder(json.JSONDecoder):
+    def __init__(self, *args, **kwargs):
+        json.JSONDecoder.__init__(self, object_hook=self.object_hook, *args, **kwargs)
+
+    def object_hook(self, dct):
+        if "node" in dct:
+            return (Node(
+                board=tuple(tuple(None if item is None else tuple(item) for item in row) for row in dct["node"]["board"]),
+                move_to_play=(
+                    None
+                    if dct["node"]["move_to_play"] is None
+                    else Move(**dct["node"]["move_to_play"])
+                ),
+            ), MonteCarloScore(**dct["montecarlo"]))
+        return dct
+
+
+def _load_game_tree_from_file(game_tree_file):
+    game_tree_as_list = json.loads(
+        pathlib.Path(game_tree_file).read_text(), cls=GameTreeDecoder
+    )
+    game_tree: dict[Node, MonteCarloScore] = {
+        n: m 
+        for n, m in game_tree_as_list
+    }
+    return game_tree
+
+
 def get_move_stats(
     board: Board,
     current_player: Player,
@@ -296,17 +339,21 @@ def get_move_stats(
     iterations: int = ITERATIONS,
     uct_cst: float = UCT_CST,
     use_depth: bool = USE_DEPTH,
+    game_tree_file: pathlib.Path | None = None,
 ) -> list[tuple[Move, MonteCarloScore]]:
     frozen_board = board.get_frozen()  # hashable version of the board
-
-    game_tree = _montecarlo_algo(
-        board=board,
-        current_player=current_player,
-        other_player=other_player,
-        iterations=iterations,
-        uct_cst=uct_cst,
-        use_depth=use_depth,
-    )
+    game_tree = None
+    if game_tree_file is not None:
+        game_tree = _load_game_tree_from_file(game_tree_file)
+    else:
+        game_tree = _montecarlo_algo(
+            board=board,
+            current_player=current_player,
+            other_player=other_player,
+            iterations=iterations,
+            uct_cst=uct_cst,
+            use_depth=use_depth,
+        )
     best_play = _get_best_play_from_game_tree(
         frozen_board=frozen_board,
         game_tree=game_tree,
@@ -316,9 +363,9 @@ def get_move_stats(
         return list()
 
     move_stats = [
-        (node.parent_move, montecarlo)
+        (node.move_to_play, montecarlo)
         for node, montecarlo in game_tree.items()
-        if node.board == best_play[-1][0].board and node.parent_move is not None
+        if node.board == best_play[-1][0].board and node.move_to_play is not None
     ]
     move_stats.sort(key=lambda x: x[1].times_visited, reverse=True)
     return move_stats
@@ -332,9 +379,37 @@ def get_best_play(
     iterations: int = ITERATIONS,
     uct_cst: float = UCT_CST,
     use_depth: bool = USE_DEPTH,
+    game_tree_file: pathlib.Path | None = None,
 ) -> list[tuple[Node, MonteCarloScore]]:
 
     frozen_board = board.get_frozen()  # hashable version of the board
+    game_tree = None
+    if game_tree_file is not None:
+        game_tree = _load_game_tree_from_file(game_tree_file)
+    else:
+        game_tree = _montecarlo_algo(
+            board=board,
+            current_player=current_player,
+            other_player=other_player,
+            iterations=iterations,
+            uct_cst=uct_cst,
+            use_depth=use_depth,
+        )
+
+    return _get_best_play_from_game_tree(
+        frozen_board=frozen_board, game_tree=game_tree, depth=depth
+    )
+
+
+def generate_tree(
+    path: pathlib.Path,
+    board: Board,
+    current_player: Player,
+    other_player: Player,
+    iterations: int = ITERATIONS,
+    uct_cst: float = UCT_CST,
+    use_depth: bool = USE_DEPTH,
+):
 
     game_tree = _montecarlo_algo(
         board=board,
@@ -344,7 +419,20 @@ def get_best_play(
         uct_cst=uct_cst,
         use_depth=use_depth,
     )
-
-    return _get_best_play_from_game_tree(
-        frozen_board=frozen_board, game_tree=game_tree, depth=depth
+    # game_tree to json
+    game_tree_json = (
+        {
+            "node": node.to_json(),
+            "montecarlo": asdict(montecarlo),
+        }
+        for node, montecarlo in game_tree.items()
     )
+
+    class StreamArray(list):
+        def __iter__(self):
+            return game_tree_json
+
+        def __len__(self):
+            return 1
+
+    pathlib.Path(path).write_text(json.dumps(StreamArray()))
