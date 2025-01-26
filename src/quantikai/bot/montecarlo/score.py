@@ -5,11 +5,13 @@ DEFAULT_UCT: float = math.inf
 # higher value to increase exploration, lower for exploitation
 UCT_CST = 0.7
 
+
 @dataclass
 class MonteCarloScore:
     """Compute values for each node
     for the Monte-Carlo UCT algorithm.
     """
+
     times_visited: int = 0  # Number of times the nodes has been visited
     score: int = 0  # Sum of the iteration rewards
     uct: float = (
