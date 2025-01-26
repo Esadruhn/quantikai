@@ -21,7 +21,7 @@ class GameTree:
         if game_tree is not None:
             self._game_tree = game_tree
 
-    def add(self, node: Node, parent_node: Node | None, uct_cst: float):
+    def add(self, node: Node, parent_node: Node | None):
         # TODO - game tree should be method agnostic ie no knowledge of montecarlo
         self._game_tree.setdefault(node, MonteCarloScore())
         times_visited = 0
@@ -31,7 +31,6 @@ class GameTree:
             times_visited = self._game_tree[parent_node].times_visited
         return self._game_tree[node].compute_score(
             times_parent_visited=times_visited,
-            uct_cst=uct_cst,
         )
 
     def compute_node_child(self, node: Node, is_leaf: bool, board: Board | None = None):
@@ -48,17 +47,17 @@ class GameTree:
     def is_computed(self, node: Node):
         return self._game_tree[node].is_computed
 
-    def get_possible_moves(self, node: Node) -> set[Move]:
+    def get_possible_moves(self, parent_node: Node) -> set[Move]:
         possible_moves = set()
-        if not self._game_tree[node].is_computed:
+        if not self._game_tree[parent_node].is_computed:
             raise GameTreeError("Trying to get possible moves from uncomputed node.")
-        if not self._game_tree[node].is_leaf:
+        if not self._game_tree[parent_node].is_leaf:
             # TODO - remove this when algo is properly tested and this is impossible
             # assert game_tree[parent_node].child_board == board.get_frozen()
             possible_moves = {
                 node.move_to_play
                 for node in self._game_tree
-                if node.board == self._game_tree[node].child_board
+                if node.board == self._game_tree[parent_node].child_board
                 and node.move_to_play is not None
             }
         return possible_moves

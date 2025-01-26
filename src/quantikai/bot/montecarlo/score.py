@@ -36,7 +36,7 @@ class MonteCarloScore:
         # we are in a graph, not a tree
         if times_parent_visited == 0:
             return DEFAULT_UCT
-        self.score = (self.score / self.times_visited) + 2 * uct_cst * math.sqrt(
+        self.uct = (self.score / self.times_visited) + 2 * uct_cst * math.sqrt(
             2 * math.log(times_parent_visited) / self.times_visited
         )
-        return self.score
+        return self.uct

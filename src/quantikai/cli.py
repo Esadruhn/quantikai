@@ -82,7 +82,6 @@ def montecarlo():
         current_player=game.Player(color=game.Colors.BLUE),
         other_player=game.Player(color=game.Colors.RED),
         iterations=50000,
-        uct_cst=0.7,
         use_depth=True,
     )
 

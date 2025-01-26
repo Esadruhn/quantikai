@@ -10,8 +10,6 @@ from quantikai.bot.montecarlo.game_tree import GameTree
 
 ITERATIONS = 5000
 USE_DEPTH = True
-# higher value to increase exploration, lower for exploitation
-UCT_CST = 0.7
 
 
 def _explore_node(
@@ -19,7 +17,6 @@ def _explore_node(
     parent_node: Node,
     board: Board,
     player: Player,
-    uct_cst: float,
 ) -> tuple[bool, Node | None]:
     """Explore one node: compute children nodes and execute one.
 
@@ -55,7 +52,6 @@ def _explore_node(
         new_uct = game_tree.add(
             node=node,
             parent_node=parent_node,
-            uct_cst=uct_cst,
         )
         if uct is None or new_uct >= uct:
             node_to_explore = node
@@ -81,7 +77,6 @@ def _montecarlo_algo(
     current_player: Player,
     other_player: Player,
     iterations: int,
-    uct_cst: float,
     use_depth: bool,
 ) -> GameTree:
     """Execute the montecarlo algorithm, up to generating
@@ -91,7 +86,7 @@ def _montecarlo_algo(
     frozen_board = board.get_frozen()  # hashable version of the board
     root_node = Node(board=frozen_board)
     game_tree = GameTree()
-    game_tree.add(node=root_node, parent_node=None, uct_cst=uct_cst)
+    game_tree.add(node=root_node, parent_node=None)
 
     for _ in range(iterations):
         is_current = False  # which player is playing
@@ -117,13 +112,13 @@ def _montecarlo_algo(
                 parent_node=parent_node,
                 board=tmp_board,
                 player=player,
-                uct_cst=uct_cst,
             )
             if node_to_explore is not None:
                 iteration_nodes.append(node_to_explore)
             if game_is_over:
                 break
             depth_reward -= 1
+            # TODO: check this, I added it, bug before !!!
             parent_node = node_to_explore
 
         # Backtrack the scores and iterations
@@ -155,7 +150,6 @@ def get_best_move(
     current_player: Player,
     other_player: Player,
     iterations: int = ITERATIONS,
-    uct_cst: float = UCT_CST,
     use_depth: bool = USE_DEPTH,
     game_tree_file: pathlib.Path | None = None,
 ) -> tuple[float, Move]:
@@ -188,7 +182,6 @@ def get_best_move(
         current_player (Player): _description_
         other_player (Player): _description_
         iterations (int, optional): _description_. Defaults to 500.
-        uct_cst (float, optional): UCT_CST (1/sqrt(2) works well
         use_depth (bool, optional): Victory score is better if fewer moves are needed (between 16 and 1). Defaults to True
 
     Returns:
@@ -204,7 +197,6 @@ def get_best_move(
             current_player=current_player,
             other_player=other_player,
             iterations=iterations,
-            uct_cst=uct_cst,
             use_depth=use_depth,
         )
 
@@ -296,7 +288,6 @@ def get_move_stats(
     other_player: Player,
     depth: int = 0,
     iterations: int = ITERATIONS,
-    uct_cst: float = UCT_CST,
     use_depth: bool = USE_DEPTH,
     game_tree_file: pathlib.Path | None = None,
 ) -> list[tuple[Move, MonteCarloScore]]:
@@ -310,7 +301,6 @@ def get_move_stats(
             current_player=current_player,
             other_player=other_player,
             iterations=iterations,
-            uct_cst=uct_cst,
             use_depth=use_depth,
         )
     best_play = _get_best_play_from_game_tree(
@@ -336,7 +326,6 @@ def get_best_play(
     other_player: Player,
     depth: int = 16,
     iterations: int = ITERATIONS,
-    uct_cst: float = UCT_CST,
     use_depth: bool = USE_DEPTH,
     game_tree_file: pathlib.Path | None = None,
 ) -> list[tuple[Node, MonteCarloScore]]:
@@ -351,7 +340,6 @@ def get_best_play(
             current_player=current_player,
             other_player=other_player,
             iterations=iterations,
-            uct_cst=uct_cst,
             use_depth=use_depth,
         )
 
@@ -366,7 +354,6 @@ def generate_tree(
     current_player: Player,
     other_player: Player,
     iterations: int = ITERATIONS,
-    uct_cst: float = UCT_CST,
     use_depth: bool = USE_DEPTH,
 ):
 
@@ -375,7 +362,6 @@ def generate_tree(
         current_player=current_player,
         other_player=other_player,
         iterations=iterations,
-        uct_cst=uct_cst,
         use_depth=use_depth,
     )
     # game_tree to json

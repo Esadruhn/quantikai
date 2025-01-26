@@ -87,7 +87,6 @@ def get_method_times():
     current_color = Colors.BLUE
     times["montecarlo"]["args"] = {
         "iterations": 1000,
-        "uct_cst": 0.7,
         "use_depth": True,
     }
     times["minmax"]["args"] = {}
