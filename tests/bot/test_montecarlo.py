@@ -186,13 +186,8 @@ def test_montecarlo_algo():
         move_to_play=Move(x=0, y=3, pawn=Pawns("D"), color=Colors.BLUE),
     )
     assert set(nodes) == {root_node, move_node}
-    assert game_tree._game_tree[root_node].is_computed == True
-    assert game_tree._game_tree[root_node].is_leaf == False
-    assert game_tree._game_tree[root_node].times_visited == 1
-
-    assert game_tree._game_tree[move_node].is_computed == True
-    assert game_tree._game_tree[move_node].is_leaf == True
-    assert game_tree._game_tree[move_node].times_visited == 1
+    for node in nodes:
+        assert game_tree._game_tree[node].times_visited == 1
 
 
 # Add test on the game tree directly
@@ -280,18 +275,10 @@ def test_montecarlo_algo_depth_2():
         move_to_play=Move(x=0, y=3, pawn=Pawns("D"), color=Colors.BLUE),
     )
     assert set(nodes) == {root_node, red_1, red_2, blue_1}
-    assert game_tree._game_tree[root_node].is_computed == True
-    assert game_tree._game_tree[root_node].is_leaf == False
+
     assert game_tree._game_tree[root_node].times_visited == 2
 
-    for node in {red_1}:
-        assert game_tree._game_tree[node].is_computed == True
-        assert game_tree._game_tree[node].is_leaf == False
-        assert game_tree._game_tree[node].times_visited == 1
-
-    for node in {red_2, blue_1}:
-        assert game_tree._game_tree[node].is_computed == True
-        assert game_tree._game_tree[node].is_leaf == True
+    for node in {red_1, red_2, blue_1}:
         assert game_tree._game_tree[node].times_visited == 1
 
 

@@ -1,17 +1,19 @@
 
 # QuantikAI
 
-
 Play Quantik with an AI
 
 DISCLAIMER: Quantik is a Gigamic game, I am in no way affiliated with Gigamic, played the game at Xmas and wanted to implement it.
 
 The game is playable either between two humans or against a bot.
 
+My goal here is to get back to programming and test some resolutions methods to create an AI agent to play against.
+I want to use minimal domain knowledge of the game (i.e. I am not interested in creating a set of rules to solve the
+game).
+
 Free software: MIT license
 
 ## How to install
-
 
 Tested on Linux with Python 3.12
 
@@ -30,6 +32,9 @@ Tested on Linux with Python 3.12
 
         # Play again yourself
         make cli ARG=human
+
+        # Deploy the web interface
+        make dev
 ```
 
 To use the web interface, do:
@@ -38,8 +43,7 @@ To use the web interface, do:
         make dev
 ```
 
-Timing
-------
+## Timing
 
 ```bash
         make cli ARG=timer
@@ -130,7 +134,7 @@ Each run is composed of 3 phases:
 ### Speed bottleneck - `Board.get_possible_moves`
 
 `get_possible_moves` to compute the possible next moves in MonteCarlo, it takes about 1min for
-the not optimez version on the game board.
+the not optimised version on the game board.
 
 A Node contains a board and the next move to play.
 
@@ -160,6 +164,20 @@ The next time `_explore_node` is called with this parent node, search in the gam
 
 This is way slower (300s vs 4s to execute `get_best_move` on an empty board). A search in a large set with an
 "equal" condition seems to be slower than to compute the possible moves each time
+
+#### Pre-compute the game tree
+
+Pre-compute the game tree and save it to a file.
+
+##### Preliminary result
+
+First try: saving it as is, computed with 50'000 iterations, produces a 1.61Gb file. A naive implementation will not do the job,
+this may still be an interesting venue but would require specific developments.
+
+On the top of my head, to reduce the file size:
+
+- require less space to save a node (do not save all values or find a more compact way of writing them), e.g. Ar for an A red pawn.
+- save the "levels" (one level = a number of pawns on the board + whether it is player 1 or 2's turn) in different files
 
 #### Node class: save children
 

@@ -52,10 +52,6 @@ def _explore_node(
             node_to_explore = node
             uct = new_uct
 
-    if not game_tree.is_computed(parent_node):
-        # Compute the parent_node since all its children have been added to the game tree
-        game_tree.compute_node_child(node=parent_node, is_leaf=False, board=board)
-
     # Play the chosen move and evaluate: leaf node or keep going
     is_win = board.play(node_to_explore.move_to_play)
     player.remove(node_to_explore.move_to_play.pawn)
