@@ -7,4 +7,6 @@ Sphinx==7.2.6
 pytest==6.2.4
 typer==0.15.1
 watchdog==6.0.0
+
 Flask==3.1.0
+gunicorn==23.0.0

@@ -60,7 +60,7 @@ function applyPlayerTurn(jsonResponse) {
 }
 
 async function fetchPostRequest(path, body = null) {
-  const url = 'http://127.0.0.1:5000/' + path
+  const url = path
 
   const params = {
     method: 'POST',

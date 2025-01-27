@@ -72,3 +72,6 @@ cli: # e.g. make cli ARG=bot
 
 dev: 
 	flask --app src/quantikai/wsgi.py run --debug
+
+devg:
+	gunicorn -w 4 'quantikai.wsgi:create_app()'
