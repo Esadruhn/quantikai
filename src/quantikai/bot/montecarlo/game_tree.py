@@ -92,6 +92,8 @@ class GameTree:
         move_stats.sort(key=lambda x: x[1].times_visited, reverse=True)
         return move_stats
 
+    # TODO
+    # Test, and remove these functions if I do not implement a pre-compute of the game tree
     def to_file(self, path: pathlib.Path):
         game_tree_json = (
             {
