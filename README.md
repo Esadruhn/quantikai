@@ -34,6 +34,10 @@ Tested on Linux with Python 3.12
         make cli ARG=human
 
         # Deploy the web interface
+        # with gunicorn (recommended)
+        make devg
+
+        # with Flask
         make dev
 ```
 
@@ -102,6 +106,17 @@ Example json:
 - Implement a new algo: reinforcement learning agent
 
 ## Implementation notes
+
+### Using the CLI or a web server
+
+Time for the bot to compute the second move (5000 iterations):
+
+- CLI: 18s
+- Flask: 23s
+- Gunicorn: 18s
+
+I did not investigate more into the app parameters, if I did, would start by taking n measures
+for more accurate timings.
 
 ### MinMax algorithm
 
@@ -191,10 +206,8 @@ TODO
 Instead of `n_iter` sequential runs, we might imagine doing `n` runs in parallel for `n_iter` times. We would introduce a random element in the
 selection steps, so that the `n` runs are different. This is probably getting closer to a reinforcement learning setup, with a Markov decision process.
 
-
 ## Sources
 
-1. 
-1. [AlphaZero](https://arxiv.org/pdf/1712.01815)
-2. [MuZero](https://arxiv.org/pdf/1911.08265)
-3. 
+1. [A Survey of MonteCarlo Search Methods](http://www.incompleteideas.net/609%20dropbox/other%20readings%20and%20resources/MCTS-survey.pdf)
+2. [AlphaZero](https://arxiv.org/pdf/1712.01815)
+3. [MuZero](https://arxiv.org/pdf/1911.08265)
