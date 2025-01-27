@@ -7,13 +7,14 @@ def get_best_move(
     board: Board,
     current_player: Player,
     other_player: Player,
-) -> tuple[int | None, Move | None]:
-    return _recursive_minmax(
+) -> Move | None:
+    _, best_move = _recursive_minmax(
         player_max=current_player.color,
         board=board,
         current_player=current_player,
         other_player=other_player,
     )
+    return best_move
 
 
 def _recursive_minmax(
@@ -96,5 +97,5 @@ def _recursive_minmax(
                     break
             elif best_score == move_score and depth > best_depth:
                 best_move = move
-                best_depth = depth
+                best_depth: int = depth
     return (best_score, best_move)

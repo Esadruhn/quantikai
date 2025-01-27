@@ -9,8 +9,8 @@
   /* User messages */
   --error: #A30000; 
   --error-background: #FFD6D6;
-  --win: #7D5D12;
-  --win-background: #EFD28D;
+  --win: #47A025;
+  --win-background: #E5F7DE;
   --wait:  #00AFB5;
   --wait-background:  #D6FEFF;
 }
@@ -51,11 +51,10 @@ fieldset {
   flex-flow: wrap row;
 }
 .flex-item {
-  width: 30px;
-  height: 30px;
+  width: 50px;
+  height: 50px;
   font-size: 1.3em;
   text-align: center;
-  padding: 10px;
 }
 .flex-item:hover {background-color: var(--tertio)}
 label {

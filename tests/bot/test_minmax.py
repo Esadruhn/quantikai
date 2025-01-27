@@ -54,7 +54,7 @@ def test_best_move_none():
             Pawns.D,
         ],
     )
-    _, best_move = minmax.get_best_move(board, blue_player, red_player)
+    best_move = minmax.get_best_move(board, blue_player, red_player)
     assert best_move is None
 
 
@@ -85,7 +85,7 @@ def test_worst_move():
             Pawns.D,
         ],
     )
-    _, best_move = minmax.get_best_move(board, red_player, blue_player)
+    best_move = minmax.get_best_move(board, red_player, blue_player)
     assert best_move is not None
     assert best_move != (1, 0, Pawns.D)
     assert best_move != (2, 0, Pawns.C)
@@ -125,7 +125,7 @@ def test_best_move_1():
             Pawns.D,
         ],
     )
-    _, best_move = minmax.get_best_move(board, red_player, blue_player)
+    best_move = minmax.get_best_move(board, red_player, blue_player)
     assert best_move != Move(2, 3, Pawns.B, Colors.RED)
 
 
@@ -168,5 +168,5 @@ def test_best_move_last():
             Pawns.D,
         ],
     )
-    _, best_move = minmax.get_best_move(board, blue_player, red_player)
+    best_move = minmax.get_best_move(board, blue_player, red_player)
     assert best_move == Move(0, 3, Pawns.D, Colors.BLUE)

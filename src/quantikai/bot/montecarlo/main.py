@@ -137,7 +137,7 @@ def get_best_move(
     iterations: int = ITERATIONS,
     use_depth: bool = USE_DEPTH,
     game_tree_file: pathlib.Path | None = None,
-) -> tuple[float, Move]:
+) -> Move | None:
     """http://www.incompleteideas.net/609%20dropbox/other%20readings%20and%20resources/MCTS-survey.pdf
     Upper Confidence Bounds for Trees (UCT)
 

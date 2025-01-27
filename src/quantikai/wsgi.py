@@ -21,7 +21,6 @@ def create_app():
     def exception_handler(error):
         return jsonify(error=400, text=str(error)), 400
 
-
     @app.route("/")
     def home():
         human_player = game.Player(color=game.Colors.BLUE)
@@ -31,7 +30,6 @@ def create_app():
         session["bot_player"] = game.Player(color=game.Colors.RED).to_json()
         session["next_player"] = "human_player"
         return render_template("index.html")
-
 
     @app.post("/")
     def human_turn():
@@ -56,7 +54,6 @@ def create_app():
             "winMessage": PLAYER_WIN_MSG,
             "newMoves": [move.to_json()],
         }
-
 
     @app.post("/bot")
     def bot_turn():
@@ -93,7 +90,6 @@ def create_app():
             "newMoves": [move.to_json()],
         }
 
-
     @app.post("/analysis")
     def get_board_analysis():
         depth = int(request.get_json().get("depth", 0))
@@ -101,9 +97,10 @@ def create_app():
         human_player = game.Player.from_json(session["human_player"])
         bot_player = game.Player.from_json(session["bot_player"])
         if session["next_player"] == "human_player":
-            return montecarlo.get_move_stats(board, human_player, bot_player, depth=depth)
+            return montecarlo.get_move_stats(
+                board, human_player, bot_player, depth=depth
+            )
         return montecarlo.get_move_stats(board, bot_player, human_player, depth=depth)
-
 
     @app.post("/gameprediction")
     def get_best_play():

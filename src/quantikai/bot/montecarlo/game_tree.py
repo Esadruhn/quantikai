@@ -38,27 +38,32 @@ class GameTree:
         self._game_tree[node].times_visited += 1
         self._game_tree[node].score += reward
 
-    def get_best_move(
-        self, frozen_board: FrozenBoard
-    ) -> tuple[float | None, Move | None]:
+    def get_best_move(self, frozen_board: FrozenBoard) -> Move | None:
         # TODO - game tree should be method agnostic ie no knowledge of montecarlo
         # Careful: if not all nodes have been visited, will ignore the unvisited nodes
         # Choose the most visited node
         best_move = None
         n_visited = None
-        winning_avg = None
+        best_score = None
         for node, montecarlo in self._game_tree.items():
             if node.board == frozen_board and node.move_to_play is not None:
                 if montecarlo.times_visited > 0:
-                    if n_visited is None or montecarlo.times_visited > n_visited:
+                    if (
+                        n_visited is None
+                        or montecarlo.times_visited > n_visited
+                        or (
+                            montecarlo.times_visited == n_visited
+                            and montecarlo.score > best_score
+                        )
+                    ):
                         best_move = node.move_to_play
                         n_visited = montecarlo.times_visited
-                        winning_avg = montecarlo.score / montecarlo.times_visited
-        return (winning_avg, best_move)
+                        best_score = montecarlo.score
+        return best_move
 
     def get_best_play(self, frozen_board: FrozenBoard, depth: int = 16):
         best_node = None
-        _, best_move = self.get_best_move(frozen_board)
+        best_move = self.get_best_move(frozen_board)
         if best_move is None:
             # game tree scores have not been computed
             return list()
@@ -69,7 +74,7 @@ class GameTree:
         for _ in range(depth):
             tmp_board.play(best_node.move_to_play)
             tmp_frozen_board = tmp_board.get_frozen()
-            _, best_move = self.get_best_move(tmp_frozen_board)
+            best_move = self.get_best_move(tmp_frozen_board)
             if best_move is None:
                 break
             best_node = Node(board=tmp_frozen_board, move_to_play=best_move)

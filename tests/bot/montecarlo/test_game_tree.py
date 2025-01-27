@@ -79,8 +79,7 @@ def test_best_move(fixture_board, fixture_game_tree, fixture_parent_node, fixtur
     fixture_game_tree.compute_score(fixture_parent_node, parent_node=None)
     fixture_game_tree.compute_score(fixture_node, parent_node=fixture_parent_node)
 
-    winning_avg, best_move = fixture_game_tree.get_best_move(fixture_board.get_frozen())
-    assert winning_avg == 1.0
+    best_move = fixture_game_tree.get_best_move(fixture_board.get_frozen())
     assert best_move == fixture_node.move_to_play
 
 

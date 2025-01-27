@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 DEFAULT_UCT: float = 1000000
 # higher value to increase exploration, lower for exploitation
-UCT_CST = 2
+UCT_CST = 1.5
 
 
 @dataclass
