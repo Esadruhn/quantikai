@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, session, jsonify
 import pathlib
+import time
 
 from quantikai import game, bot
 from quantikai.bot import montecarlo
@@ -68,7 +69,6 @@ def bot_turn():
     if not board.have_possible_move(bot_player.color):
         game_is_over = True
         win_message = PLAYER_WIN_MSG
-
     move: game.Move = bot.get_best_move(board, bot_player, human_player)
     if move is None:
         game_is_over = True
@@ -99,6 +99,7 @@ def get_board_analysis():
     board = game.Board.from_json(session["board"])
     human_player = game.Player.from_json(session["human_player"])
     bot_player = game.Player.from_json(session["bot_player"])
+    result = None
     if session["next_player"] == "human_player":
         return montecarlo.get_move_stats(board, human_player, bot_player, depth=depth)
     return montecarlo.get_move_stats(board, bot_player, human_player, depth=depth)

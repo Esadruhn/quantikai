@@ -185,3 +185,16 @@ Same as the previous method, except that instead of saving the child_board, also
 Expectations: greater memory usage
 
 TODO
+
+#### Parallel computation
+
+Instead of `n_iter` sequential runs, we might imagine doing `n` runs in parallel for `n_iter` times. We would introduce a random element in the
+selection steps, so that the `n` runs are different. This is probably getting closer to a reinforcement learning setup, with a Markov decision process.
+
+
+## Sources
+
+1. [Optimize Flask performance](https://www.digitalocean.com/community/tutorials/how-to-optimize-flask-performance)
+2. [AlphaZero](https://arxiv.org/pdf/1712.01815)
+3. [MuZero](https://arxiv.org/pdf/1911.08265)
+4. 

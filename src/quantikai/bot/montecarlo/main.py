@@ -6,7 +6,7 @@ from quantikai.bot.montecarlo.node import Node
 from quantikai.bot.montecarlo.score import MonteCarloScore
 from quantikai.bot.montecarlo.game_tree import GameTree
 
-ITERATIONS = 2000
+ITERATIONS = 1000
 USE_DEPTH = True
 
 
