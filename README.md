@@ -1,6 +1,5 @@
 
-QuantikAI
-=========
+# QuantikAI
 
 Play Quantik with an AI
 
@@ -8,10 +7,13 @@ DISCLAIMER: Quantik is a Gigamic game, I am in no way affiliated with Gigamic, p
 
 The game is playable either between two humans or against a bot.
 
+My goal here is to get back to programming and test some resolutions methods to create an AI agent to play against.
+I want to use minimal domain knowledge of the game (i.e. I am not interested in creating a set of rules to solve the
+game).
+
 Free software: MIT license
 
-How to install
----------------
+## How to install
 
 Tested on Linux with Python 3.12
 
@@ -30,6 +32,9 @@ Tested on Linux with Python 3.12
 
         # Play again yourself
         make cli ARG=human
+
+        # Deploy the web interface
+        make dev
 ```
 
 To use the web interface, do:
@@ -38,8 +43,7 @@ To use the web interface, do:
         make dev
 ```
 
-Timing
-------
+## Timing
 
 ```bash
         make cli ARG=timer
@@ -51,30 +55,36 @@ Example json:
 
 ```json
 {
-  "n_iter": 1,
+  "n_iter": 10,
+  "timestamp": "2025-01-26 16:53:34.563995",
   "montecarlo": {
-    "0": 5.7,
-    "1": 5.98,
-    "2": 4.99,
-    "3": 1.01,
-    "4": 3.84,
-    "5": 0.83,
-    "6": 0.71,
-    "7": 0.52,
-    "8": 0.46,
-    "9": 0.49,
-    "10": 0.4,
-    "11": 0.39,
-    "12": 0.26,
-    "13": 0.28,
-    "14": 0.25
+    "args": {
+      "iterations": 1000,
+      "use_depth": true
+    },
+    "0": 3.93,
+    "1": 4.16,
+    "2": 3.53,
+    "3": 2.47,
+    "4": 2.54,
+    "5": 1.67,
+    "6": 1.33,
+    "7": 0.9,
+    "8": 0.53,
+    "9": 0.44,
+    "10": 0.23,
+    "11": 0.25,
+    "12": 0.14,
+    "13": 0.15,
+    "14": 0.12
   },
   "minmax": {
-    "4": 73.57,
-    "5": 88.06,
-    "6": 4.77,
-    "7": 1.09,
-    "8": 0.02,
+    "args": {},
+    "4": 149.09,
+    "5": 33.17,
+    "6": 3.56,
+    "7": 0.43,
+    "8": 0.0,
     "9": 0.0,
     "10": 0.0,
     "11": 0.0,
@@ -85,12 +95,106 @@ Example json:
 }
 ```
 
-Next steps
----------------
+## Next steps
 
-- test deployment (Docker container, check requirements.txt is ok)
-- deployment in prod mode
-- see how to improve the Montecarlo algo
-- speed improvements on Montecarlo and minmax
-- web interface: show the move scores from the algos
-- implement a new algo: reinforcement learning agent
+- Algo improvement: keep working on the MonteCarlo algo
+- More tests on the algorithms
+- Implement a new algo: reinforcement learning agent
+
+## Implementation notes
+
+### MinMax algorithm
+
+This is a particular case of the minmax algorithm: the reward is binary, either -1 or 1.
+So the alpha-beta pruning is straightforward: stop going through child nodes when one of them
+has a "win" score for the current player.
+
+### MonteCarlo algorithm
+
+Play the game n_iter times, backpropagate the reward and chose the best move.
+
+Each run is composed of 3 phases:
+
+1. Selection
+
+  Select the next move: if a move has not been tried yet, choose it. Else, use the UCP formula to compute
+  each move UCT value and choose the one with the max UCT value.
+
+2. Evaluate the node
+
+  If it is a leaf node (victory or loss), go to the backpropagation step. Else go back to the selection step.
+
+3. Backpropagation
+
+  The reward for a win is equal to the depth of the node (i.e. the number of moves to play to get there).  
+  The reward for a loss is 0.
+  Update the score of each node that has been visited during this run. If the node is a move by the current player, add the reward.
+  If the node is a move by the opponent, then flip the reward: 0 for a win of the current player, number of moves played for a loss.
+
+### Speed bottleneck - `Board.get_possible_moves`
+
+`get_possible_moves` to compute the possible next moves in MonteCarlo, it takes about 1min for
+the not optimised version on the game board.
+
+A Node contains a board and the next move to play.
+
+How to measure time gains:
+
+- for individual functions: small script using `timeit` (did not keep the script)
+- for global algos: `make cli ARG=timer`
+
+#### Optimize the move search by removing redundancies
+
+- On an empty board: only consider one pawn and the 4 cells in the upper right corner
+- On a board with one pawn: consider two pawns (the same and one different from the one already on the board) and
+  remove redundant cells using symmetries.
+
+This is a great speed-up. I could certainly do more but I do not want to spend too much time on knowledge-based rules
+for this exercise.
+
+#### One call to `get_possible_moves` per node then search in the set
+
+In the `_explore_node` function, if it is the first time we check that `parent_node`, then there
+is one call to `get_possible_moves`. The possible next moves are saved to the game tree then we save the
+resulting board of board + move to play in the parent move.
+
+The next time `_explore_node` is called with this parent node, search in the game tree every node with that board.
+
+##### Result
+
+This is way slower (300s vs 4s to execute `get_best_move` on an empty board). A search in a large set with an
+"equal" condition seems to be slower than to compute the possible moves each time
+
+#### Pre-compute the game tree
+
+Pre-compute the game tree and save it to a file.
+
+##### Preliminary result
+
+First try: saving it as is, computed with 50'000 iterations, produces a 1.61Gb file. A naive implementation will not do the job,
+this may still be an interesting venue but would require specific developments.
+
+On the top of my head, to reduce the file size:
+
+- require less space to save a node (do not save all values or find a more compact way of writing them), e.g. Ar for an A red pawn.
+- save the "levels" (one level = a number of pawns on the board + whether it is player 1 or 2's turn) in different files
+
+#### Node class: save children
+
+Same as the previous method, except that instead of saving the child_board, also save the child moves
+Expectations: greater memory usage
+
+TODO
+
+#### Parallel computation
+
+Instead of `n_iter` sequential runs, we might imagine doing `n` runs in parallel for `n_iter` times. We would introduce a random element in the
+selection steps, so that the `n` runs are different. This is probably getting closer to a reinforcement learning setup, with a Markov decision process.
+
+
+## Sources
+
+1. 
+1. [AlphaZero](https://arxiv.org/pdf/1712.01815)
+2. [MuZero](https://arxiv.org/pdf/1911.08265)
+3. 

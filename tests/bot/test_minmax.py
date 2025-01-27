@@ -7,18 +7,6 @@ from quantikai.game import Board, Pawns, Colors, Player, Move
 from quantikai.bot import minmax
 
 
-@pytest.fixture
-def fixture_board():
-    return Board(
-        board=[
-            [(Pawns.A, Colors.BLUE), None, None, None],
-            [None, None, None, None],
-            [None, None, None, None],
-            [None, None, None, None],
-        ]
-    )
-
-
 def test_best_move_none():
     board = Board(
         board=[

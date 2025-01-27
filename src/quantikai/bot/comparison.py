@@ -1,5 +1,6 @@
 """Compare the execution time of each method"""
 
+import datetime
 import time
 import copy
 import pathlib
@@ -9,6 +10,7 @@ from quantikai.bot import minmax, montecarlo
 from quantikai.game import Board, Pawns, Colors, Player, Move
 
 TIMEOUT = 60
+
 
 def timeit(f, n_iter=100):
     """timeit decorator"""
@@ -73,11 +75,21 @@ def init_test_values():
 
 def get_method_times():
 
-    n_iter = 1
-    times = {"n_iter": n_iter, "montecarlo": dict(), "minmax": dict()}
+    n_iter = 10
+    times = {
+        "n_iter": n_iter,
+        "timestamp": str(datetime.datetime.now()),
+        "montecarlo": dict(),
+        "minmax": dict(),
+    }
     idx = 0
     result_file = pathlib.Path("bot_algo_time.json")
     current_color = Colors.BLUE
+    times["montecarlo"]["args"] = {
+        "iterations": 1000,
+        "use_depth": True,
+    }
+    times["minmax"]["args"] = {}
 
     boards, players = init_test_values()
     other_player = players[1]
@@ -87,11 +99,15 @@ def get_method_times():
                 board=board,
                 current_player=player,
                 other_player=other_player,
+                **times["minmax"]["args"]
             )
             times["minmax"][idx] = time_res_min
 
         tim_res_mont = timeit(montecarlo.get_best_move, n_iter=n_iter)(
-            board=board, current_player=player, other_player=other_player
+            board=board,
+            current_player=player,
+            other_player=other_player,
+            **times["montecarlo"]["args"]
         )
         times["montecarlo"][idx] = tim_res_mont
 

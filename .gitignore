@@ -110,3 +110,5 @@ ENV/
 
 # Program specific files
 *bot_algo_time*.json
+*montecarlo_tree*.json
+script.py

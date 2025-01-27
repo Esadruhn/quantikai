@@ -9,5 +9,5 @@ class Pawns(str, Enum):
 
 
 class Colors(str, Enum):
-    BLUE = "\033[44m"
-    RED = "\033[41m"
+    BLUE = "BLUE"
+    RED = "RED"

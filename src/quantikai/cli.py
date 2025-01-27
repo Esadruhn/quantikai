@@ -1,8 +1,8 @@
 """Console script for quantikai"""
 
 import typer
+import pathlib
 from rich.console import Console
-import timeit
 
 from quantikai import game, play, bot
 
@@ -72,6 +72,18 @@ def rules():
 @app.command()
 def timer():
     bot.get_method_times()
+
+
+@app.command()
+def montecarlo():
+    bot.montecarlo.generate_tree(
+        path=pathlib.Path("montecarlo_tree.json"),
+        board=game.Board(),
+        current_player=game.Player(color=game.Colors.BLUE),
+        other_player=game.Player(color=game.Colors.RED),
+        iterations=50000,
+        use_depth=True,
+    )
 
 
 if __name__ == "__main__":

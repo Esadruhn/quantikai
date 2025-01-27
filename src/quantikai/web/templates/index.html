@@ -12,23 +12,40 @@
     <title>Quantik</title>
 
     <body>
-        <div class="sidebar">
-            <button class="button" onClick="onClickNewGame()">New game</button>
+        <aside>
+            <button class="big" onClick="onClickNewGame()">New game</button>
             <fieldset>
-                <legend>Select a pawn:</legend>
+                <legend>Select a pawn</legend>
                 <ul class="flex-container longhand">
                     {% for pawn in session["human_player"].pawns %}
                     <li id={{pawn}} class="flex-item BLUE">
-                        <input id={{pawn}}-{{loop.index}} type="radio" name="pawn-select" val={{pawn}}>
-                        <label for={{pawn}}-{{loop.index}}>{{pawn}}</label>
+                        <input id={{pawn}}-{{loop.index}} type="radio" name="pawn-select" val={{pawn}} class="hidden">
+                        <label class="center" for={{pawn}}-{{loop.index}}>{{pawn}}</label>
                     </li>
                     {% endfor %}
                 </ul>
             </fieldset>
-            <p id="msgBox"></p>
-        </div>
+            <article class="msg" id="msgBox"></article>
+            <article class="toggle">
+                <button disabled class="big" id="modeButtonClassic" onClick="onClickChangeMode('classic')">Classic</button>
+                <button class="big" id="modeButtonAnalysis" onClick="onClickChangeMode('analysis')">Analysis</button>
+            </article>
+            <article id="modeAnalysis" class="column hidden">
+                <button id="buttonNextMove" onClick="onClickNextMove()">Next move</button>
+                <button onClick="showGamePrediction()">Game prediction</button>
+                <fieldset>
+                    <legend>Board Analysis</legend>
+                    <div class="slidecontainer">
+                        <label>Depth of the board analysis (0 for the next move)</label>
+                        <input type="range" min="0" max="16" value="0" class="slider" id="boardAnalysisDepth" oninput="this.nextElementSibling.value = this.value">
+                        <output>0</output>
+                    </div>
+                    <button onClick="showBoardAnalysis()">Compute</button>
+                </fieldset>
+            </article>
+        </aside>
     
-        <div class="board">
+        <section class="board">
             {% for column_nb in range(2) %}
             <div class="column">
                 {% for row_nb in range(2) %}
@@ -52,7 +69,12 @@
                 {% endfor %}
             </div>
             {% endfor %}
-        </div>
+        </section>
+
+        <aside>
+            <p id="board-analysis"></p>
+            <p id="game-prediction"></p>
+        </aside>
         <!-- inserting these scripts at the end to be able to use all the elements in the DOM -->
         <script src="/static/index.js"></script>
     </body>

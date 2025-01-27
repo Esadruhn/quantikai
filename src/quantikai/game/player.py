@@ -25,7 +25,6 @@ class Player:
 
     @classmethod
     def from_json(cls, body):
-        # TODO check values in body
         return cls(color=Colors[body["color"]], pawns=[Pawns(p) for p in body["pawns"]])
 
     def to_json(self):
