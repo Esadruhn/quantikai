@@ -99,7 +99,6 @@ def get_board_analysis():
     board = game.Board.from_json(session["board"])
     human_player = game.Player.from_json(session["human_player"])
     bot_player = game.Player.from_json(session["bot_player"])
-    result = None
     if session["next_player"] == "human_player":
         return montecarlo.get_move_stats(board, human_player, bot_player, depth=depth)
     return montecarlo.get_move_stats(board, bot_player, human_player, depth=depth)

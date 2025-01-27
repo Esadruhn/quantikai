@@ -20,9 +20,11 @@ class GameTree:
         if game_tree is not None:
             self._game_tree = game_tree
 
-    def add(self, node: Node, parent_node: Node | None):
-        # TODO - game tree should be method agnostic ie no knowledge of montecarlo
+    def add(self, node: Node):
         self._game_tree.setdefault(node, MonteCarloScore())
+
+    def compute_score(self, node: Node, parent_node: Node | None):
+        # TODO - game tree should be method agnostic ie no knowledge of montecarlo
         times_visited = 0
         # two possibilities: root node has None for parent node
         # and parent_node is not in game tree because this is a graph, not a tree
@@ -57,10 +59,14 @@ class GameTree:
     def get_best_play(self, frozen_board: FrozenBoard, depth: int = 16):
         best_node = None
         _, best_move = self.get_best_move(frozen_board)
+        if best_move is None:
+            # game tree scores have not been computed
+            return list()
         best_node = Node(board=frozen_board, move_to_play=best_move)
         best_play = [(best_node, self._game_tree[best_node])]
         tmp_board = Board(board=frozen_board.board)
-        for _ in range(depth - 1):
+
+        for _ in range(depth):
             tmp_board.play(best_node.move_to_play)
             tmp_frozen_board = tmp_board.get_frozen()
             _, best_move = self.get_best_move(tmp_frozen_board)

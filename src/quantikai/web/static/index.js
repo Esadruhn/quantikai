@@ -151,7 +151,7 @@ function showBoardAnalysis() {
       }
       responseDisplay += '</ol>'
       document.getElementById('board-analysis').innerHTML = responseDisplay
-      document.getElementById('msgBox').innerHTML = ''
+      clearMsg()
     }
   ).catch((error) => { errorMsg(error) })
 }
@@ -165,7 +165,7 @@ function showGamePrediction() {
       }
       responseDisplay += '</ol>'
       document.getElementById('game-prediction').innerHTML = responseDisplay
-      document.getElementById('msgBox').innerHTML = ''
+      clearMsg()
     }
   ).catch((error) => { errorMsg(error) })
 }

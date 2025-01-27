@@ -1,25 +1,12 @@
 """Tests for `montecarlo` package."""
 
 import copy
-import pytest
 
 
 from quantikai.bot.montecarlo.main import _montecarlo_algo
 from quantikai.game import Board, Pawns, Colors, Player, Move
 from quantikai.bot.montecarlo.node import Node
 from quantikai.bot import montecarlo
-
-
-@pytest.fixture
-def fixture_board():
-    return Board(
-        board=[
-            [(Pawns.A, Colors.BLUE), None, None, None],
-            [None, None, None, None],
-            [None, None, None, None],
-            [None, None, None, None],
-        ]
-    )
 
 
 def test_best_move_none():
@@ -177,8 +164,6 @@ def test_montecarlo_algo():
         iterations=1,
         use_depth=True,
     )
-    # TODO: find a board with a small set of moves and assert the game tree
-    # is as expected
     nodes = game_tree._game_tree.keys()
     root_node = Node(board=board.get_frozen(), move_to_play=None)
     move_node = Node(

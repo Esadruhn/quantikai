@@ -6,7 +6,7 @@ from quantikai.bot.montecarlo.node import Node
 from quantikai.bot.montecarlo.score import MonteCarloScore
 from quantikai.bot.montecarlo.game_tree import GameTree
 
-ITERATIONS = 1000
+ITERATIONS = 5000
 USE_DEPTH = True
 
 
@@ -42,7 +42,8 @@ def _explore_node(
     uct = None
     for pos_mov in possible_moves:
         node = Node(board=board.get_frozen(), move_to_play=pos_mov)
-        new_uct = game_tree.add(
+        game_tree.add(node)
+        new_uct = game_tree.compute_score(
             node=node,
             parent_node=parent_node,
         )
@@ -71,7 +72,7 @@ def _montecarlo_algo(
     frozen_board = board.get_frozen()  # hashable version of the board
     root_node = Node(board=frozen_board)
     game_tree = GameTree()
-    game_tree.add(node=root_node, parent_node=None)
+    game_tree.add(node=root_node)
 
     for _ in range(iterations):
         is_current = False  # which player is playing
@@ -103,7 +104,6 @@ def _montecarlo_algo(
             if game_is_over:
                 break
             depth_reward -= 1
-            # TODO: check this, I added it, bug before !!!
             parent_node = node_to_explore
 
         # Backtrack the scores and iterations
@@ -115,7 +115,7 @@ def _montecarlo_algo(
             # current_player wins
             reward = 1
         if use_depth:
-            reward = reward * use_depth
+            reward = reward * depth_reward
 
         while len(iteration_nodes) > 0:
             node = iteration_nodes.pop()
@@ -124,7 +124,7 @@ def _montecarlo_algo(
             if reward == 0:
                 reward = 1
                 if use_depth:
-                    reward = use_depth
+                    reward = depth_reward
             else:
                 reward = 0
     return game_tree

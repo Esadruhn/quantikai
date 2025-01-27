@@ -194,7 +194,7 @@ selection steps, so that the `n` runs are different. This is probably getting cl
 
 ## Sources
 
-1. [Optimize Flask performance](https://www.digitalocean.com/community/tutorials/how-to-optimize-flask-performance)
-2. [AlphaZero](https://arxiv.org/pdf/1712.01815)
-3. [MuZero](https://arxiv.org/pdf/1911.08265)
-4. 
+1. 
+1. [AlphaZero](https://arxiv.org/pdf/1712.01815)
+2. [MuZero](https://arxiv.org/pdf/1911.08265)
+3. 
