@@ -44,8 +44,18 @@ Tested on Linux with Python 3.12
 To use the web interface, do:
 
 ```bash
-        make dev
+        make devg
 ```
+
+To get a better bot (from the web interface), do:
+
+```bash
+        make cli ARG=montecarlo
+        make devg
+```
+
+`make cli ARG=montecarlo` pre-computes the game tree, going much deeper than the on-the-fly algorithm. The result is then used for the first
+few moves on the board, subsequent moves are calcultaed on the fly.
 
 ## Timing
 
@@ -132,7 +142,7 @@ Each run is composed of 3 phases:
 
 1. Selection
 
-  Select the next move: if a move has not been tried yet, choose it. Else, use the UCP formula to compute
+  Select the next move: if a move has not been tried yet, choose it. Else, use the UCB formula to compute
   each move UCT value and choose the one with the max UCT value.
 
 2. Evaluate the node
@@ -146,17 +156,49 @@ Each run is composed of 3 phases:
   Update the score of each node that has been visited during this run. If the node is a move by the current player, add the reward.
   If the node is a move by the opponent, then flip the reward: 0 for a win of the current player, number of moves played for a loss.
 
-### Speed bottleneck - `Board.get_possible_moves`
-
-`get_possible_moves` to compute the possible next moves in MonteCarlo, it takes about 1min for
-the not optimised version on the game board.
+### Speed bottleneck
 
 A Node contains a board and the next move to play.
 
 How to measure time gains:
 
-- for individual functions: small script using `timeit` (did not keep the script)
+- for individual functions: small script using `timeit`
+
+  ```python
+    def time_get_possible_moves():
+      board.get_possible_moves(args)
+    d = timeit.Timer(time_get_possible_moves)
+    print(min(d.repeat(20, 100000)))
+  ```
+
 - for global algos: `make cli ARG=timer`
+
+#### Board operations: save the board state as a dict of moves vs a list of list
+
+The board operations `Board.play` (with validity and if is win checks) and `Board.get_possible_moves`
+are called a lot of times in the algorithms, so any speed gain on these operations end up making a
+big difference on the final performance.
+
+I tested two different implementations to represent the board state.
+
+Internal representation of the board as a list of list:
+
+```python
+  board = [(Pawns.A, Colors.BLUE), None, None, None],
+            [None, None, None, None],
+            [None, None, None, None],
+            [None, None, None, None],
+```
+
+Internal representation of the board as a dictionnary of the moves:
+
+```python
+  board = {(0,0): ((Pawns.A, Colors.BLUE))}
+```
+
+The Montecarlo search is 1.3-1.5x faster with the move dict implementation.
+Time for the bot to compute the second move (5000 iterations) deployed with Flask: from
+23s to 15s.
 
 #### Optimize the move search by removing redundancies
 
@@ -193,6 +235,18 @@ On the top of my head, to reduce the file size:
 
 - require less space to save a node (do not save all values or find a more compact way of writing them), e.g. Ar for an A red pawn.
 - save the "levels" (one level = a number of pawns on the board + whether it is player 1 or 2's turn) in different files
+
+Second try:
+
+- save the data in a more compressed way
+  - save only the data up to depth = 3
+  - save only the bot player moves (i.e. red player, and assume that blue starts)
+- 50'000 iterations of the MonteCarlo algorithm (100'000 iterations leads to a process kill)
+- consider all possible move (did not remove redundancies) - removing redundancies would necessitate extra code at play time to infer best moves from symetries
+- save only up to depth 3 included (for a sequence of play Blue(depth=0), Red(depth=1), Blue(depth=2), Red(depth=3)), produces a 81Mb file
+- at move 3, most nodes have not been visited
+
+So to get improvements with the pre-compute method, we need to exploit symetries and do more iterations.
 
 #### Node class: save children
 

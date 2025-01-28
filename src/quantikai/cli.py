@@ -74,16 +74,26 @@ def timer():
     bot.get_method_times()
 
 
-@app.command()
-def montecarlo():
+@app.command("montecarlo")
+def generate_montecarlo_tree():
     bot.montecarlo.generate_tree(
-        path=pathlib.Path("montecarlo_tree.json"),
+        path=pathlib.Path("montecarlo_tree_blue.json"),
         board=game.Board(),
-        current_player=game.Player(color=game.Colors.BLUE),
-        other_player=game.Player(color=game.Colors.RED),
-        iterations=50000,
+        first_player=game.Player(color=game.Colors.BLUE),
+        second_player=game.Player(color=game.Colors.RED),
+        main_player_color=game.Colors.RED,
+        iterations=50000, # 50000 OK, 100000 = process killed
         use_depth=True,
     )
+    # Generate tree for the other player color
+    # bot.montecarlo.generate_tree(
+    #     path=pathlib.Path("montecarlo_tree_red.json"),
+    #     board=game.Board(),
+    #     current_player=game.Player(color=game.Colors.RED),
+    #     other_player=game.Player(color=game.Colors.BLUE),
+    #     iterations=50000,
+    #     use_depth=True,
+    # )
 
 
 if __name__ == "__main__":

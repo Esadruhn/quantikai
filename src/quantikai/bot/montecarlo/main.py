@@ -1,13 +1,14 @@
 import copy
 import pathlib
 
-from quantikai.game import Board, Player, Move
+from quantikai.game import Board, Player, Move, Colors
 from quantikai.bot.montecarlo.node import Node
 from quantikai.bot.montecarlo.score import MonteCarloScore
 from quantikai.bot.montecarlo.game_tree import GameTree
 
 ITERATIONS = 5000
 USE_DEPTH = True
+GAME_TREE_FILE_MAX_DEPTH = 3
 
 
 def _explore_node(
@@ -15,6 +16,7 @@ def _explore_node(
     parent_node: Node,
     board: Board,
     player: Player,
+    all_possible_moves: bool,
 ) -> tuple[bool, Node | None]:
     """Explore one node: compute children nodes and execute one.
 
@@ -30,7 +32,7 @@ def _explore_node(
     possible_moves = board.get_possible_moves(
         player.pawns,
         player.color,
-        optimize=True,
+        optimize=not all_possible_moves,
     )
 
     # end case: the parent node is a leaf node
@@ -64,10 +66,19 @@ def _montecarlo_algo(
     other_player: Player,
     iterations: int,
     use_depth: bool,
+    all_possible_moves: bool = False,
 ) -> GameTree:
-    """Execute the montecarlo algorithm, up to generating
-    the 'game tree' i.e. the graph of the moves with their
-    scores.
+    """Execute the montecarlo algorithm, up to generating the 'game tree' i.e. the graph of the moves with their scores.
+    Args:
+        board (Board): _description_
+        current_player (Player): _description_
+        other_player (Player): _description_
+        iterations (int): _description_
+        use_depth (bool): _description_
+        all_possible_moves (bool, optional): whether to consider redundant moves or not (eg by exploiting board symmetry). Defaults to False.
+
+    Returns:
+        GameTree: _description_
     """
     frozen_board = board.get_frozen()  # hashable version of the board
     root_node = Node(board=frozen_board)
@@ -98,6 +109,7 @@ def _montecarlo_algo(
                 parent_node=parent_node,
                 board=tmp_board,
                 player=player,
+                all_possible_moves=all_possible_moves,
             )
             if node_to_explore is not None:
                 iteration_nodes.append(node_to_explore)
@@ -174,7 +186,7 @@ def get_best_move(
     """
     frozen_board = board.get_frozen()  # hashable version of the board
     game_tree = None
-    if game_tree_file is not None:
+    if game_tree_file is not None and len(frozen_board) <= GAME_TREE_FILE_MAX_DEPTH:
         game_tree = GameTree.from_file(path=game_tree_file)
     else:
         game_tree = _montecarlo_algo(
@@ -199,7 +211,7 @@ def get_move_stats(
 ) -> list[tuple[Move, MonteCarloScore]]:
     frozen_board = board.get_frozen()  # hashable version of the board
     game_tree = None
-    if game_tree_file is not None:
+    if game_tree_file is not None and len(frozen_board) <= GAME_TREE_FILE_MAX_DEPTH:
         game_tree = GameTree.from_file(game_tree_file)
     else:
         game_tree = _montecarlo_algo(
@@ -224,7 +236,7 @@ def get_best_play(
 
     frozen_board = board.get_frozen()  # hashable version of the board
     game_tree = None
-    if game_tree_file is not None:
+    if game_tree_file is not None and len(frozen_board) <= GAME_TREE_FILE_MAX_DEPTH:
         game_tree = GameTree.from_file(game_tree_file)
     else:
         game_tree = _montecarlo_algo(
@@ -244,17 +256,33 @@ def get_best_play(
 def generate_tree(
     path: pathlib.Path,
     board: Board,
-    current_player: Player,
-    other_player: Player,
+    first_player: Player,
+    second_player: Player,
+    main_player_color: Colors,
+    max_depth: int = GAME_TREE_FILE_MAX_DEPTH,
     iterations: int = ITERATIONS,
     use_depth: bool = USE_DEPTH,
-):
+) -> None:
+    """Generate the MonteCarlo algorithm game tree and
+    save it to a file.
+
+    Args:
+        path (pathlib.Path): path where to save the generated file
+        board (Board): starting board
+        first_player (Player): player that plays first on this board
+        second_player (Player): player that plays second on this board
+        main_player_color (Colors): keep only the moves for that player
+        max_depth (int, optional): max depth of the game tree that is saved. Defaults to GAME_TREE_FILE_MAX_DEPTH.
+        iterations (int, optional): MonteCarlo algorithm parameter: number of iterations. Defaults to ITERATIONS.
+        use_depth (bool, optional): MonteCarlo algorithm parameter: reward depends on the depth. Defaults to USE_DEPTH.
+    """
 
     game_tree = _montecarlo_algo(
         board=board,
-        current_player=current_player,
-        other_player=other_player,
+        current_player=first_player,
+        other_player=second_player,
         iterations=iterations,
         use_depth=use_depth,
+        all_possible_moves=True,  # compute the whole tree, no optimization on "get_possible_moves"
     )
-    game_tree.to_file(path=path)
+    game_tree.to_file(path=path, player_color=main_player_color, max_depth=max_depth)

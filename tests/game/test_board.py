@@ -10,46 +10,52 @@ from quantikai.game import Board, Move, Pawns, Colors, InvalidMoveError
 @pytest.fixture
 def fixture_board():
     return Board(
-        board=[
-            [(Pawns.A, Colors.BLUE), None, None, None],
-            [(Pawns.A, Colors.BLUE), None, None, None],
-            [(Pawns.A, Colors.BLUE), None, None, None],
-            [(Pawns.A, Colors.BLUE), None, None, None],
-        ]
+        board={
+            (0, 0): (Pawns.A, Colors.BLUE),
+            (1, 0): (Pawns.A, Colors.BLUE),
+            (2, 0): (Pawns.A, Colors.BLUE),
+            (3, 0): (Pawns.A, Colors.BLUE),
+        }
     )
 
 
 @pytest.fixture
 def fixture_board_win_first():
     return Board(
-        board=[
-            [
-                (Pawns.A, Colors.BLUE),
-                (Pawns.D, Colors.BLUE),
-                (Pawns.C, Colors.BLUE),
-                None,
-            ],
-            [(Pawns.C, Colors.BLUE), None, None, None],
-            [(Pawns.D, Colors.BLUE), None, None, None],
-            [None, None, None, None],
-        ]
+        board={
+            (0, 0): (Pawns.A, Colors.BLUE),
+            (0, 1): (Pawns.D, Colors.BLUE),
+            (0, 2): (Pawns.C, Colors.BLUE),
+            (1, 0): (Pawns.C, Colors.BLUE),
+            (2, 0): (Pawns.D, Colors.BLUE),
+        }
     )
 
 
 @pytest.fixture
 def fixture_board_win_last():
     return Board(
-        board=[
-            [None, None, None, None],
-            [None, None, None, (Pawns.B, Colors.BLUE)],
-            [None, None, None, (Pawns.C, Colors.BLUE)],
-            [
-                None,
-                (Pawns.C, Colors.BLUE),
-                (Pawns.B, Colors.BLUE),
-                (Pawns.D, Colors.BLUE),
-            ],
-        ]
+        board={
+            (1, 3): (Pawns.B, Colors.BLUE),
+            (2, 3): (Pawns.C, Colors.BLUE),
+            (3, 1): (Pawns.C, Colors.BLUE),
+            (3, 2): (Pawns.B, Colors.BLUE),
+            (3, 3): (Pawns.D, Colors.BLUE),
+        }
+    )
+
+
+@pytest.fixture
+def fixture_board_1():
+    return Board(
+        board={
+            (0, 0): (Pawns.B, Colors.RED),
+            (0, 1): (Pawns.A, Colors.RED),
+            (0, 2): (Pawns.B, Colors.RED),
+            (2, 2): (Pawns.A, Colors.BLUE),
+            (2, 3): (Pawns.B, Colors.BLUE),
+            (3, 3): (Pawns.D, Colors.BLUE),
+        }
     )
 
 
@@ -81,17 +87,9 @@ def test_board_piece_already_there(fixture_board):
 @pytest.mark.parametrize(
     "row_idx, column_idx", [(i, j) for i in range(1, 4) for j in range(0, 4)]
 )
-def test_board_invalid_row(row_idx, column_idx):
-    board = Board(
-        board=[
-            [(Pawns.A, Colors.BLUE), None, None, None],
-            [(Pawns.A, Colors.BLUE), None, None, None],
-            [(Pawns.A, Colors.BLUE), None, None, None],
-            [(Pawns.A, Colors.BLUE), None, None, None],
-        ]
-    )
+def test_board_invalid_row(fixture_board, row_idx, column_idx):
     with pytest.raises(InvalidMoveError):
-        board.play(Move(row_idx, column_idx, Pawns.A, Colors.RED))
+        fixture_board.play(Move(row_idx, column_idx, Pawns.A, Colors.RED))
 
 
 @pytest.mark.parametrize(
@@ -99,17 +97,12 @@ def test_board_invalid_row(row_idx, column_idx):
 )
 def test_board_invalid_column(row_idx, column_idx):
     board = Board(
-        board=[
-            [
-                (Pawns.A, Colors.BLUE),
-                (Pawns.A, Colors.BLUE),
-                (Pawns.A, Colors.BLUE),
-                (Pawns.A, Colors.BLUE),
-            ],
-            [None, None, None, None],
-            [None, None, None, None],
-            [None, None, None, None],
-        ]
+        board={
+            (0, 0): (Pawns.A, Colors.BLUE),
+            (0, 1): (Pawns.A, Colors.BLUE),
+            (0, 2): (Pawns.A, Colors.BLUE),
+            (0, 3): (Pawns.A, Colors.BLUE),
+        }
     )
     with pytest.raises(InvalidMoveError):
         board.play(Move(row_idx, column_idx, Pawns.A, Colors.RED))
@@ -120,12 +113,12 @@ def test_board_invalid_column(row_idx, column_idx):
 )
 def test_board_invalid_section(pawn, row_idx, column_idx):
     board = Board(
-        board=[
-            [(Pawns.A, Colors.BLUE), None, None, None],
-            [None, None, (Pawns.B, Colors.BLUE), None],
-            [None, (Pawns.C, Colors.BLUE), None, None],
-            [None, None, None, (Pawns.D, Colors.BLUE)],
-        ]
+        board={
+            (0, 0): (Pawns.A, Colors.BLUE),
+            (1, 2): (Pawns.B, Colors.BLUE),
+            (2, 1): (Pawns.C, Colors.BLUE),
+            (3, 3): (Pawns.D, Colors.BLUE),
+        }
     )
     with pytest.raises(InvalidMoveError):
         board.play(Move(row_idx, column_idx, Pawns[pawn], Colors.RED))
@@ -155,129 +148,87 @@ def test_board_section_win_last(fixture_board_win_last):
     assert fixture_board_win_last.play(Move(2, 2, Pawns.A, Colors.BLUE))
 
 
-def test_board_section_bottom_right_win():
-    board = Board(
-        board=[
-            [(Pawns.B, Colors.RED), (Pawns.A, Colors.RED), (Pawns.B, Colors.RED), None],
-            [None, None, None, None],
-            [None, None, (Pawns.A, Colors.BLUE), (Pawns.B, Colors.BLUE)],
-            [None, None, None, (Pawns.D, Colors.BLUE)],
-        ]
-    )
-    assert board.play(Move(3, 2, Pawns.C, Colors.BLUE))
+def test_board_section_bottom_right_win(fixture_board_1):
+    assert fixture_board_1.play(Move(3, 2, Pawns.C, Colors.BLUE))
 
 
-def test_move_is_not_win():
-    board = Board(
-        board=[
-            [(Pawns.B, Colors.RED), (Pawns.A, Colors.RED), (Pawns.B, Colors.RED), None],
-            [None, None, None, None],
-            [None, None, (Pawns.A, Colors.BLUE), (Pawns.B, Colors.BLUE)],
-            [None, None, None, (Pawns.D, Colors.BLUE)],
-        ]
-    )
-    assert not board.play(Move(3, 2, Pawns.A, Colors.BLUE))
-    assert not board.play(Move(0, 3, Pawns.C, Colors.RED))
+def test_move_is_not_win(fixture_board_1):
+    assert not fixture_board_1.play(Move(3, 2, Pawns.A, Colors.BLUE))
+    assert not fixture_board_1.play(Move(0, 3, Pawns.C, Colors.RED))
 
 
 def test_play():
     board = Board()
-    board.play(Move(0, 0, Pawns["A"], Colors.BLUE))
-    board.play(Move(3, 3, Pawns["B"], Colors.RED))
-    board.play(Move(1, 1, Pawns["D"], Colors.BLUE))
-    assert board.board == [
-        [(Pawns.A, Colors.BLUE), None, None, None],
-        [None, (Pawns.D, Colors.BLUE), None, None],
-        [None, None, None, None],
-        [None, None, None, (Pawns.B, Colors.RED)],
-    ]
+    board.play(Move(0, 0, Pawns.A, Colors.BLUE))
+    board.play(Move(3, 3, Pawns.B, Colors.RED))
+    board.play(Move(1, 1, Pawns.D, Colors.BLUE))
+    assert board._board == {
+        (0, 0): (Pawns.A, Colors.BLUE),
+        (3, 3): (Pawns.B, Colors.RED),
+        (1, 1): (Pawns.D, Colors.BLUE),
+    }
 
 
-def test_have_possible_move():
-    board = Board(
-        board=[
-            [(Pawns.B, Colors.RED), (Pawns.A, Colors.RED), (Pawns.B, Colors.RED), None],
-            [None, None, None, None],
-            [None, None, (Pawns.A, Colors.BLUE), (Pawns.B, Colors.BLUE)],
-            [None, None, None, (Pawns.D, Colors.BLUE)],
-        ]
-    )
-    assert board.have_possible_move(Colors.RED)
-    assert board.have_possible_move(Colors.RED)
+def test_have_possible_move(fixture_board_1):
+    assert fixture_board_1.have_possible_move(Colors.BLUE)
+    assert fixture_board_1.have_possible_move(Colors.RED)
 
 
 def test_no_possible_move_full_board():
     board = Board(
-        board=[
-            [
-                (Pawns.A, Colors.BLUE),
-                (Pawns.C, Colors.RED),
-                (Pawns.B, Colors.RED),
-                (Pawns.B, Colors.RED),
-            ],
-            [
-                (Pawns.B, Colors.RED),
-                (Pawns.C, Colors.RED),
-                (Pawns.B, Colors.RED),
-                (Pawns.B, Colors.RED),
-            ],
-            [
-                (Pawns.B, Colors.RED),
-                (Pawns.D, Colors.BLUE),
-                (Pawns.A, Colors.BLUE),
-                (Pawns.B, Colors.BLUE),
-            ],
-            [
-                (Pawns.A, Colors.BLUE),
-                (Pawns.D, Colors.BLUE),
-                (Pawns.A, Colors.BLUE),
-                (Pawns.D, Colors.BLUE),
-            ],
-        ]
+        board={
+            (0, 0): (Pawns.A, Colors.BLUE),
+            (0, 1): (Pawns.C, Colors.RED),
+            (0, 2): (Pawns.B, Colors.RED),
+            (0, 3): (Pawns.B, Colors.RED),
+            (1, 0): (Pawns.B, Colors.RED),
+            (1, 1): (Pawns.C, Colors.RED),
+            (1, 2): (Pawns.B, Colors.RED),
+            (1, 3): (Pawns.B, Colors.RED),
+            (2, 0): (Pawns.B, Colors.RED),
+            (2, 1): (Pawns.D, Colors.BLUE),
+            (2, 2): (Pawns.A, Colors.BLUE),
+            (2, 3): (Pawns.B, Colors.BLUE),
+            (3, 0): (Pawns.A, Colors.BLUE),
+            (3, 1): (Pawns.D, Colors.BLUE),
+            (3, 2): (Pawns.A, Colors.BLUE),
+            (3, 3): (Pawns.D, Colors.BLUE),
+        }
     )
     assert not board.have_possible_move(Colors.RED)
 
 
 def test_no_valid_move():
     board = Board(
-        board=[
-            [
-                (Pawns.A, Colors.BLUE),
-                (Pawns.C, Colors.BLUE),
-                (Pawns.B, Colors.RED),
-                (Pawns.B, Colors.RED),
-            ],
-            [
-                (Pawns.B, Colors.RED),
-                None,
-                (Pawns.B, Colors.RED),
-                (Pawns.B, Colors.BLUE),
-            ],
-            [
-                (Pawns.B, Colors.RED),
-                (Pawns.D, Colors.BLUE),
-                (Pawns.A, Colors.BLUE),
-                (Pawns.B, Colors.BLUE),
-            ],
-            [
-                (Pawns.A, Colors.BLUE),
-                (Pawns.D, Colors.BLUE),
-                (Pawns.A, Colors.BLUE),
-                (Pawns.D, Colors.BLUE),
-            ],
-        ]
+        board={
+            (0, 0): (Pawns.A, Colors.BLUE),
+            (0, 1): (Pawns.C, Colors.BLUE),
+            (0, 2): (Pawns.B, Colors.RED),
+            (0, 3): (Pawns.B, Colors.RED),
+            (1, 0): (Pawns.B, Colors.RED),
+            # (1,1) is empty
+            (1, 2): (Pawns.B, Colors.RED),
+            (1, 3): (Pawns.B, Colors.BLUE),
+            (2, 0): (Pawns.B, Colors.RED),
+            (2, 1): (Pawns.D, Colors.BLUE),
+            (2, 2): (Pawns.A, Colors.BLUE),
+            (2, 3): (Pawns.B, Colors.BLUE),
+            (3, 0): (Pawns.A, Colors.BLUE),
+            (3, 1): (Pawns.D, Colors.BLUE),
+            (3, 2): (Pawns.A, Colors.BLUE),
+            (3, 3): (Pawns.D, Colors.BLUE),
+        }
     )
     assert not board.have_possible_move(Colors.RED)
 
 
 def test_get_possible_moves():
     board = Board(
-        board=[
-            [None, (Pawns.A, Colors.RED), None, None],
-            [None, None, None, None],
-            [None, None, (Pawns.A, Colors.BLUE), None],
-            [None, None, None, (Pawns.B, Colors.RED)],
-        ]
+        board={
+            (0, 1): (Pawns.A, Colors.RED),
+            (2, 2): (Pawns.A, Colors.BLUE),
+            (3, 3): (Pawns.B, Colors.RED),
+        }
     )
     moves = board.get_possible_moves([Pawns.A], color=Colors.BLUE)
     assert moves == {
@@ -292,12 +243,11 @@ def test_get_possible_moves():
 
 def test_get_possible_moves_pawns():
     board = Board(
-        board=[
-            [None, (Pawns.A, Colors.RED), None, None],
-            [None, None, None, None],
-            [None, None, (Pawns.A, Colors.BLUE), None],
-            [None, None, None, (Pawns.B, Colors.RED)],
-        ]
+        board={
+            (0, 1): (Pawns.A, Colors.RED),
+            (2, 2): (Pawns.A, Colors.BLUE),
+            (3, 3): (Pawns.B, Colors.RED),
+        }
     )
     moves = board.get_possible_moves([Pawns.A, Pawns.B], color=Colors.BLUE)
     a_moves = {
@@ -322,22 +272,19 @@ def test_get_possible_moves_pawns():
 
 def test_get_possible_move_edge_case():
     board = Board(
-        [
-            [
-                (Pawns.A, Colors.BLUE),
-                (Pawns.B, Colors.BLUE),
-                (Pawns.C, Colors.BLUE),
-                None,
-            ],
-            [(Pawns.C, Colors.RED), (Pawns.C, Colors.RED), None, (Pawns.A, Colors.RED)],
-            [
-                (Pawns.B, Colors.BLUE),
-                (Pawns.D, Colors.RED),
-                (Pawns.A, Colors.BLUE),
-                (Pawns.D, Colors.RED),
-            ],
-            [None, None, (Pawns.C, Colors.BLUE), None],
-        ]
+        board={
+            (0, 0): (Pawns.A, Colors.BLUE),
+            (0, 1): (Pawns.B, Colors.BLUE),
+            (0, 2): (Pawns.C, Colors.BLUE),
+            (1, 0): (Pawns.C, Colors.RED),
+            (1, 1): (Pawns.C, Colors.RED),
+            (1, 3): (Pawns.A, Colors.RED),
+            (2, 0): (Pawns.B, Colors.BLUE),
+            (2, 1): (Pawns.D, Colors.RED),
+            (2, 2): (Pawns.A, Colors.BLUE),
+            (2, 3): (Pawns.D, Colors.RED),
+            (3, 2): (Pawns.C, Colors.BLUE),
+        }
     )
     board.print()
     move = (3, 0, Pawns.D, Colors.BLUE)
@@ -393,14 +340,7 @@ def test_get_possible_moves_optimize_one():
 
 
 def test_get_possible_moves_optimize_one_section_1():
-    board = Board(
-        [
-            [None, (Pawns.A, Colors.RED), None, None],
-            [None, None, None, None],
-            [None, None, None, None],
-            [None, None, None, None],
-        ]
-    )
+    board = Board({(0, 1): (Pawns.A, Colors.RED)})
     moves = board.get_possible_moves(
         pawns=list(Pawns), color=Colors.BLUE, optimize=True
     )
@@ -431,3 +371,25 @@ def test_get_possible_moves_optimize_one_section_1():
         (3, 2),
         (3, 3),
     }
+
+
+def test_from_json_empty():
+    Board.from_json(
+        body=[
+            [None, None, None, None],
+            [None, None, None, None],
+            [None, None, None, None],
+            [None, None, None, None],
+        ]
+    )
+
+
+def test_from_json():
+    Board.from_json(
+        body=[
+            [(Pawns.A, Colors.BLUE), None, None, None],
+            [None, None, None, None],
+            [None, None, None, None],
+            [None, None, None, None],
+        ]
+    )

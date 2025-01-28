@@ -1,8 +1,7 @@
 import pathlib
 import json
-from dataclasses import asdict
 
-from quantikai.game import Board, FrozenBoard, Move
+from quantikai.game import Board, FrozenBoard, Move, Colors
 from quantikai.bot.montecarlo.node import Node
 from quantikai.bot.montecarlo.score import MonteCarloScore
 
@@ -69,7 +68,7 @@ class GameTree:
             return list()
         best_node = Node(board=frozen_board, move_to_play=best_move)
         best_play = [(best_node, self._game_tree[best_node])]
-        tmp_board = Board(board=frozen_board.board)
+        tmp_board = Board(board=frozen_board)
 
         for _ in range(depth):
             tmp_board.play(best_node.move_to_play)
@@ -99,13 +98,16 @@ class GameTree:
 
     # TODO
     # Test, and remove these functions if I do not implement a pre-compute of the game tree
-    def to_file(self, path: pathlib.Path):
+    def to_file(self, path: pathlib.Path, player_color: Colors, max_depth: int = 16):
         game_tree_json = (
             {
-                "node": node.to_json(),
-                "montecarlo": asdict(montecarlo),
+                "node": node.to_compressed(),
+                "montecarlo": montecarlo.to_compressed(),
             }
             for node, montecarlo in self._game_tree.items()
+            if len(node.board) <= max_depth
+            and node.move_to_play is not None
+            and node.move_to_play.color == player_color
         )
 
         class StreamArray(list):
@@ -126,18 +128,8 @@ class GameTree:
         def object_hook(self, dct):
             if "node" in dct:
                 return (
-                    Node(
-                        board=tuple(
-                            tuple(None if item is None else tuple(item) for item in row)
-                            for row in dct["node"]["board"]
-                        ),
-                        move_to_play=(
-                            None
-                            if dct["node"]["move_to_play"] is None
-                            else Move(**dct["node"]["move_to_play"])
-                        ),
-                    ),
-                    MonteCarloScore(**dct["montecarlo"]),
+                    Node.from_compressed(dct["node"]),
+                    MonteCarloScore.from_compressed(dct["montecarlo"]),
                 )
             return dct
 

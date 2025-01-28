@@ -60,7 +60,7 @@ def init_test_values():
         Move(3, 3, Pawns.A, Colors.RED),
     ]
     for move in moves:
-        tmp_board = copy.deepcopy(board)
+        tmp_board: Board = copy.deepcopy(board)
         tmp_player = copy.deepcopy(current_player)
 
         tmp_board.play(move)

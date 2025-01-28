@@ -15,8 +15,21 @@ class Node:
 
     def to_json(self):
         return {
-            "board": self.board.board,
+            "board": self.board.to_json(),
             "move_to_play": (
-                None if self.move_to_play is None else asdict(self.move_to_play)
+                None if self.move_to_play is None else self.move_to_play.to_json()
             ),
         }
+
+    def to_compressed(self):
+        return [
+            self.board.to_compressed(),
+            None if self.move_to_play is None else self.move_to_play.to_compressed(),
+        ]
+
+    @classmethod
+    def from_compressed(cls, body):
+        return cls(
+            board=FrozenBoard.from_compressed(body[0]),
+            move_to_play=Move.from_compressed(body[1]),
+        )
