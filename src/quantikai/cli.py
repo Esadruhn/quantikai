@@ -79,9 +79,10 @@ def generate_montecarlo_tree():
     bot.montecarlo.generate_tree(
         path=pathlib.Path("montecarlo_tree_blue.json"),
         board=game.Board(),
-        current_player=game.Player(color=game.Colors.BLUE),
-        other_player=game.Player(color=game.Colors.RED),
-        iterations=500000,
+        first_player=game.Player(color=game.Colors.BLUE),
+        second_player=game.Player(color=game.Colors.RED),
+        main_player_color=game.Colors.RED,
+        iterations=50000, # 50000 OK, 100000 = process killed
         use_depth=True,
     )
     # Generate tree for the other player color

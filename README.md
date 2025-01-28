@@ -236,11 +236,17 @@ On the top of my head, to reduce the file size:
 - require less space to save a node (do not save all values or find a more compact way of writing them), e.g. Ar for an A red pawn.
 - save the "levels" (one level = a number of pawns on the board + whether it is player 1 or 2's turn) in different files
 
-Second try: save the data in a more compressed way, computed with 50'000 iterations, save only up to depth 4 included, produces a 355Mb file
-naive implementation:
+Second try:
 
-- pre-compute the whole game tree without taking advantage of board symmetries
-- with file loaded at each request
+- save the data in a more compressed way
+  - save only the data up to depth = 3
+  - save only the bot player moves (i.e. red player, and assume that blue starts)
+- 50'000 iterations of the MonteCarlo algorithm (100'000 iterations leads to a process kill)
+- consider all possible move (did not remove redundancies) - removing redundancies would necessitate extra code at play time to infer best moves from symetries
+- save only up to depth 3 included (for a sequence of play Blue(depth=0), Red(depth=1), Blue(depth=2), Red(depth=3)), produces a 81Mb file
+- at move 3, most nodes have not been visited
+
+So to get improvements with the pre-compute method, we need to exploit symetries and do more iterations.
 
 #### Node class: save children
 
