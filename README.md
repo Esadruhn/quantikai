@@ -148,8 +148,7 @@ Each run is composed of 3 phases:
 
 ### Speed bottleneck - `Board.get_possible_moves`
 
-`get_possible_moves` to compute the possible next moves in MonteCarlo, it takes about 1min for
-the not optimised version on the game board.
+`get_possible_moves` to compute the possible next moves in MonteCarlo
 
 A Node contains a board and the next move to play.
 

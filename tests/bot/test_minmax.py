@@ -9,32 +9,24 @@ from quantikai.bot import minmax
 
 def test_best_move_none():
     board = Board(
-        board=[
-            [
-                (Pawns.A, Colors.BLUE),
-                (Pawns.B, Colors.BLUE),
-                (Pawns.C, Colors.BLUE),
-                (Pawns.C, Colors.BLUE),
-            ],
-            [
-                (Pawns.C, Colors.RED),
-                (Pawns.B, Colors.BLUE),
-                (Pawns.B, Colors.BLUE),
-                (Pawns.B, Colors.BLUE),
-            ],
-            [
-                (Pawns.B, Colors.BLUE),
-                (Pawns.D, Colors.RED),
-                (Pawns.B, Colors.BLUE),
-                (Pawns.B, Colors.BLUE),
-            ],
-            [
-                (Pawns.B, Colors.BLUE),
-                (Pawns.B, Colors.BLUE),
-                (Pawns.B, Colors.BLUE),
-                (Pawns.B, Colors.BLUE),
-            ],
-        ]
+        board={
+            (0, 0): (Pawns.A, Colors.BLUE),
+            (0, 1): (Pawns.C, Colors.RED),
+            (0, 2): (Pawns.B, Colors.RED),
+            (0, 3): (Pawns.B, Colors.RED),
+            (1, 0): (Pawns.B, Colors.RED),
+            (1, 1): (Pawns.C, Colors.RED),
+            (1, 2): (Pawns.B, Colors.RED),
+            (1, 3): (Pawns.B, Colors.RED),
+            (2, 0): (Pawns.B, Colors.RED),
+            (2, 1): (Pawns.D, Colors.BLUE),
+            (2, 2): (Pawns.A, Colors.BLUE),
+            (2, 3): (Pawns.B, Colors.BLUE),
+            (3, 0): (Pawns.A, Colors.BLUE),
+            (3, 1): (Pawns.D, Colors.BLUE),
+            (3, 2): (Pawns.A, Colors.BLUE),
+            (3, 3): (Pawns.D, Colors.BLUE),
+        }
     )
     blue_player = Player(
         color=Colors.BLUE,
@@ -60,12 +52,11 @@ def test_best_move_none():
 
 def test_worst_move():
     board = Board(
-        board=[
-            [(Pawns.A, Colors.BLUE), None, None, None],
-            [None, (Pawns.C, Colors.BLUE), None, None],
-            [None, None, None, None],
-            [(Pawns.B, Colors.RED), None, None, None],
-        ]
+        board={
+            (0, 0): (Pawns.A, Colors.BLUE),
+            (1, 1): (Pawns.C, Colors.BLUE),
+            (3, 0): (Pawns.B, Colors.RED),
+        }
     )
     blue_player = Player(
         color=Colors.BLUE,
@@ -94,17 +85,15 @@ def test_worst_move():
 
 def test_best_move_1():
     board = Board(
-        board=[
-            [
-                (Pawns.C, Colors.RED),
-                None,
-                (Pawns.C, Colors.RED),
-                (Pawns.D, Colors.BLUE),
-            ],
-            [None, (Pawns.B, Colors.BLUE), None, (Pawns.A, Colors.BLUE)],
-            [(Pawns.B, Colors.RED), None, (Pawns.A, Colors.BLUE), None],
-            [None, None, None, None],
-        ]
+        board={
+            (0, 0): (Pawns.C, Colors.RED),
+            (0, 2): (Pawns.C, Colors.RED),
+            (0, 3): (Pawns.D, Colors.BLUE),
+            (1, 1): (Pawns.B, Colors.BLUE),
+            (1, 3): (Pawns.A, Colors.BLUE),
+            (2, 0): (Pawns.B, Colors.RED),
+            (2, 2): (Pawns.A, Colors.BLUE),
+        }
     )
     blue_player = Player(
         color=Colors.BLUE,
@@ -138,17 +127,14 @@ def test_best_move_last():
     #     2 |____||__D_| |__B_||____|
     #     3 |____||____| |____||____|
     board = Board(
-        board=[
-            [
-                (Pawns.A, Colors.BLUE),
-                (Pawns.B, Colors.BLUE),
-                (Pawns.C, Colors.BLUE),
-                None,
-            ],
-            [(Pawns.C, Colors.RED), None, None, None],
-            [None, (Pawns.D, Colors.RED), (Pawns.B, Colors.RED), None],
-            [None, None, None, None],
-        ]
+        board={
+            (0, 0): (Pawns.A, Colors.BLUE),
+            (0, 1): (Pawns.B, Colors.BLUE),
+            (0, 2): (Pawns.C, Colors.BLUE),
+            (1, 0): (Pawns.C, Colors.RED),
+            (2, 1): (Pawns.D, Colors.RED),
+            (2, 2): (Pawns.B, Colors.RED),
+        }
     )
     blue_player = Player(
         color=Colors.BLUE,

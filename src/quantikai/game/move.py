@@ -10,6 +10,7 @@ class Move:
     pawn: Pawns
     color: Colors
 
+    # TODO
     def to_json(self):
         return {
             "x": self.x,

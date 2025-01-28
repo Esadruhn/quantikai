@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request, session, jsonify
 import pathlib
-import time
 
 from quantikai import game, bot
 from quantikai.bot import montecarlo

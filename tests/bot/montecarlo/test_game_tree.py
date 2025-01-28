@@ -10,14 +10,7 @@ from quantikai.bot.montecarlo.node import Node
 
 @pytest.fixture
 def fixture_board():
-    return Board(
-        board=[
-            [(Pawns.A, Colors.BLUE), None, None, None],
-            [None, None, None, None],
-            [None, None, None, None],
-            [None, None, None, None],
-        ]
-    )
+    return Board(board={(0, 0): (Pawns.A, Colors.BLUE)})
 
 
 @pytest.fixture
