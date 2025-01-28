@@ -2,7 +2,7 @@ import pytest
 
 from quantikai.bot.montecarlo.main import GameTree, MonteCarloScore
 from quantikai.bot.montecarlo.score import DEFAULT_UCT
-from quantikai.game import Board, Pawns, Colors, Move
+from quantikai.game import Board, Pawns, Colors, Move, FrozenBoard
 from quantikai.bot.montecarlo.node import Node
 
 
@@ -144,11 +144,25 @@ def test_get_best_play_depth_1(board, game_tree, parent_node, node):
 
 def test_to_file(game_tree, tmp_path):
     filepath = tmp_path / "game_tree.json"
-    game_tree.to_file(filepath)
+    game_tree.to_file(filepath, player_color=Colors.BLUE)
 
 
-def test_from_file(game_tree, tmp_path):
+def test_from_file_red(game_tree, tmp_path, board):
     filepath = tmp_path / "game_tree.json"
-    game_tree.to_file(filepath)
+    game_tree.to_file(filepath, player_color=Colors.RED)
+    gm: GameTree = GameTree.from_file(filepath)
+    assert gm._game_tree == {
+        Node(
+            board=board.get_frozen(), move_to_play=Move(2, 2, Pawns.A, Colors.RED)
+        ): MonteCarloScore(times_visited=0, score=0, uct=DEFAULT_UCT),
+        Node(
+            board=board.get_frozen(), move_to_play=Move(2, 3, Pawns.A, Colors.RED)
+        ): MonteCarloScore(times_visited=0, score=0, uct=DEFAULT_UCT),
+    }
+
+
+def test_from_file_blue(game_tree, tmp_path):
+    filepath = tmp_path / "game_tree.json"
+    game_tree.to_file(filepath, player_color=Colors.BLUE)
     gm = GameTree.from_file(filepath)
-    assert gm._game_tree == game_tree._game_tree
+    assert len(gm._game_tree) == 0
