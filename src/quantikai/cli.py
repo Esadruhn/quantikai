@@ -77,10 +77,18 @@ def timer():
 @app.command("montecarlo")
 def generate_montecarlo_tree():
     bot.montecarlo.generate_tree(
-        path=pathlib.Path("montecarlo_tree.json"),
+        path=pathlib.Path("montecarlo_tree_blue.json"),
         board=game.Board(),
         current_player=game.Player(color=game.Colors.BLUE),
         other_player=game.Player(color=game.Colors.RED),
+        iterations=50000,
+        use_depth=True,
+    )
+    bot.montecarlo.generate_tree(
+        path=pathlib.Path("montecarlo_tree_red.json"),
+        board=game.Board(),
+        current_player=game.Player(color=game.Colors.RED),
+        other_player=game.Player(color=game.Colors.BLUE),
         iterations=50000,
         use_depth=True,
     )

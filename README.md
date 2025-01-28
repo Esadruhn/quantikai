@@ -186,7 +186,9 @@ Internal representation of the board as a dictionnary of the moves:
   board = {(0,0): ((Pawns.A, Colors.BLUE))}
 ```
 
-The Montecarlo search is 2x faster with the move dict implementation.
+The Montecarlo search is 1.3-1.5x faster with the move dict implementation.
+Time for the bot to compute the second move (5000 iterations) deployed with Flask: from
+23s to 15s.
 
 #### Optimize the move search by removing redundancies
 
@@ -223,6 +225,9 @@ On the top of my head, to reduce the file size:
 
 - require less space to save a node (do not save all values or find a more compact way of writing them), e.g. Ar for an A red pawn.
 - save the "levels" (one level = a number of pawns on the board + whether it is player 1 or 2's turn) in different files
+
+Second try: save the data in a more compressed way, computed with 50'000 iterations, produces a 680Mb file
+naive implementation with file loaded at each request
 
 #### Node class: save children
 

@@ -1,6 +1,5 @@
 import pathlib
 import json
-from dataclasses import asdict
 
 from quantikai.game import Board, FrozenBoard, Move
 from quantikai.bot.montecarlo.node import Node
@@ -46,7 +45,7 @@ class GameTree:
         n_visited = None
         best_score = None
         for node, montecarlo in self._game_tree.items():
-            if node.board == frozen_board and node.move_to_play is not None:
+            if node.board == frozen_board.board and node.move_to_play is not None:
                 if montecarlo.times_visited > 0:
                     if (
                         n_visited is None
@@ -99,13 +98,14 @@ class GameTree:
 
     # TODO
     # Test, and remove these functions if I do not implement a pre-compute of the game tree
-    def to_file(self, path: pathlib.Path):
+    def to_file(self, path: pathlib.Path, max_depth: int):
         game_tree_json = (
             {
                 "node": node.to_compressed(),
                 "montecarlo": montecarlo.to_compressed(),
             }
             for node, montecarlo in self._game_tree.items()
+            if len(node.board) <= max_depth
         )
 
         class StreamArray(list):

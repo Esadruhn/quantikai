@@ -9,21 +9,31 @@ from quantikai.game.move import Move
 
 @dataclass(frozen=True, eq=True)
 class FrozenBoard:
-    _board: frozenset[tuple[int, int, Pawns, Colors]]
+    board: frozenset[tuple[int, int, Pawns, Colors]]
+
+    def __len__(self):
+        return len(self.board)
 
     def items(self):
-        for item in self._board:
+        for item in self.board:
             yield item
 
     def to_json(self):
-        return list(self._board)
+        return list(self.board)
 
     def to_compressed(self):
-        return list(self._board)
+        return list(self.board)
 
     @classmethod
     def from_compressed(cls, body):
-        return cls(frozenset({tuple(item) for item in body}))
+        return cls(
+            frozenset(
+                {
+                    (int(item[0]), int(item[1]), Pawns[item[2]], Colors[item[3]])
+                    for item in body
+                }
+            )
+        )
 
 
 class Board:
