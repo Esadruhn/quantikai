@@ -106,8 +106,10 @@ def create_app():
         board = game.Board.from_json(session["board"])
         human_player = game.Player.from_json(session["human_player"])
         bot_player = game.Player.from_json(session["bot_player"])
+        best_play = None
         if session["next_player"] == "human_player":
-            return montecarlo.get_best_play(board, human_player, bot_player)
-        return montecarlo.get_best_play(board, bot_player, human_player)
+            best_play = montecarlo.get_best_play(board, human_player, bot_player)
+        best_play = montecarlo.get_best_play(board, bot_player, human_player)
+        return [(node.to_json(), mscore) for node, mscore in best_play]
 
     return app

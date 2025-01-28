@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import Generator
-
+import json
 
 from quantikai.game.exceptions import InvalidMoveError
 from quantikai.game.enums import Colors, Pawns
@@ -9,44 +9,62 @@ from quantikai.game.move import Move
 
 @dataclass(frozen=True, eq=True)
 class FrozenBoard:
-    board: tuple[tuple[tuple[int, int], tuple[Pawns, Colors]]]
+    _board: frozenset[tuple[int, int, Pawns, Colors]]
+
+    def items(self):
+        for item in self._board:
+            yield item
+
+    def to_json(self):
+        return json.dumps(list(self._board))
 
 
 class Board:
-    board: dict[tuple[int, int], tuple[Pawns, Colors]]
-    size: int
+    _board: dict[tuple[int, int], tuple[Pawns, Colors]]
+    _size: int = 4
 
     def __init__(self, board=None):
         if board is not None:
-            self.board = board
+            if isinstance(board, FrozenBoard):
+                self._board = {(x, y): (p, c) for x, y, p, c in board.items()}
+            elif isinstance(board, dict):
+                self._board = board
+            else:
+                # TODO
+                raise
         else:
-            self.board = dict()
-        self.size = 4
+            self._board = dict()
 
-    # TODO
     @classmethod
     def from_json(cls, body: list[list[tuple[str, str] | None]]):
-        # TODO check values in body
         return cls(
-            board=[
-                [
-                    None if elt is None else (Pawns[elt[0]], Colors[elt[1]])
-                    for elt in row
-                ]
-                for row in body
-            ]
+            board={
+                (x, y): (Pawns[body[x][y][0]], Colors[body[x][y][1]])
+                for x in range(cls._size)
+                for y in range(cls._size)
+                if body[x][y] is not None
+            }
         )
 
-    # TODO
-    def to_json(self):
+    def to_json(self) -> list[list[tuple[str, str] | None]]:
         return [
-            [None if v is None else (v[0].name, v[1].name) for v in row]
-            for row in self.board
+            [
+                (
+                    (
+                        self._board[(row_nb, col_nb)][0].name,
+                        self._board[(row_nb, col_nb)][1].name,
+                    )
+                    if (row_nb, col_nb) in self._board
+                    else None
+                )
+                for col_nb in range(self._size)
+            ]
+            for row_nb in range(self._size)
         ]
 
     def play(self, move: Move):
         self._check_move_is_valid(move)
-        self.board[(move.x, move.y)] = (move.pawn, move.color)
+        self._board[(move.x, move.y)] = (move.pawn, move.color)
         return self._move_is_a_win(move.x, move.y)
 
     # TODO
@@ -60,10 +78,10 @@ class Board:
         for i in range(4):
             str_board += str(i) + " "
             for j in range(4):
-                if (i, j) in self.board:
+                if (i, j) in self._board:
                     str_board += self._ctxt(
-                        "|__" + self.board[(i, j)][0].value + "_|",
-                        self.board[(i, j)][1],
+                        "|__" + self._board[(i, j)][0].value + "_|",
+                        self._board[(i, j)][1],
                     )
                 else:
                     str_board += "|____|"
@@ -76,8 +94,8 @@ class Board:
         print(str_board)
 
     def have_possible_move(self, color: Colors):
-        for x in range(self.size):
-            for y in range(self.size):
+        for x in range(self._size):
+            for y in range(self._size):
                 for pawn in Pawns:
                     try:
                         self._check_move_is_valid(Move(x, y, pawn, color))
@@ -101,7 +119,7 @@ class Board:
         """
         if optimize:
             # Case 1: No pawn on the board
-            if len(self.board) == 0:
+            if len(self._board) == 0:
                 # Only need to check for one pawn and one section minus one cell because of symmetry
                 # Actually I am not even sure the first move matters
                 return {
@@ -113,8 +131,8 @@ class Board:
             # Diagonal symmetry: both sections next to the played section are the same and in opposite section 2 cells are
             # the same
             # Pawn: either play the same pawn or a different one. If different, does not matter which one
-            if len(self.board) == 1:
-                (bx, by), (bpawn, _) = list(self.board.items())[0]
+            if len(self._board) == 1:
+                (bx, by), (bpawn, _) = list(self._board.items())[0]
                 other_pawn = [p for p in Pawns if p != bpawn][0]
                 return (
                     {
@@ -146,15 +164,15 @@ class Board:
         # Get all possible moves
         moves: set = {
             (i, j, p, color)
-            for i in range(self.size)
-            for j in range(self.size)
+            for i in range(self._size)
+            for j in range(self._size)
             for p in pawns
         }
-        for (bx, by), (bpawn, bcolor) in self.board.items():
+        for (bx, by), (bpawn, bcolor) in self._board.items():
             for pawn in pawns:
                 moves.discard((bx, by, pawn, color))
             if bcolor != color:
-                for idx in range(self.size):
+                for idx in range(self._size):
                     moves.discard((idx, by, bpawn, color))
                     moves.discard((bx, idx, bpawn, color))
                 for i, j in self._get_section_elements(bx, by):
@@ -164,39 +182,39 @@ class Board:
 
     def get_frozen(self) -> FrozenBoard:
         return FrozenBoard(
-            board=tuple((key, value) for key, value in self.board.items())
+            frozenset((x, y, p, c) for (x, y), (p, c) in self._board.items())
         )
 
     def _check_move_is_valid(self, move: Move):
-        if move.x < 0 or move.y < 0 or move.x >= self.size or move.y >= self.size:
+        if move.x < 0 or move.y < 0 or move.x >= self._size or move.y >= self._size:
             raise InvalidMoveError(
                 "x and y must be between 0 and 4, their values are: "
                 + str(move.x)
                 + " "
                 + str(move.y)
             )
-        if (move.x, move.y) in self.board:
+        if (move.x, move.y) in self._board:
             raise InvalidMoveError("already a pawn there")
-        for j in range(self.size):
+        for j in range(self._size):
             if (
-                (move.x, j) in self.board
-                and self.board[(move.x, j)][0] == move.pawn
-                and self.board[(move.x, j)][1] != move.color
+                (move.x, j) in self._board
+                and self._board[(move.x, j)][0] == move.pawn
+                and self._board[(move.x, j)][1] != move.color
             ):
                 raise InvalidMoveError("there is an opponent's pawn in that row")
-        for i in range(self.size):
+        for i in range(self._size):
             if (
-                (i, move.y) in self.board
-                and self.board[(i, move.y)][0] == move.pawn
-                and self.board[(i, move.y)][1] != move.color
+                (i, move.y) in self._board
+                and self._board[(i, move.y)][0] == move.pawn
+                and self._board[(i, move.y)][1] != move.color
             ):
                 raise InvalidMoveError("there is an opponent's pawn in that column")
         # check section
         for i, j in self._get_section_elements(move.x, move.y):
             if (
-                (i, j) in self.board
-                and self.board[(i, j)][0] == move.pawn
-                and self.board[(i, j)][1] != move.color
+                (i, j) in self._board
+                and self._board[(i, j)][0] == move.pawn
+                and self._board[(i, j)][1] != move.color
             ):
                 raise InvalidMoveError("there is an opponent's pawn in that section")
 
@@ -211,26 +229,26 @@ class Board:
 
     def _row_win(self, x: int):
         other_pawns: set[Pawns] = set()
-        for j in range(self.size):
-            if not (x, j) in self.board or self.board[(x, j)][0] in other_pawns:
+        for j in range(self._size):
+            if not (x, j) in self._board or self._board[(x, j)][0] in other_pawns:
                 return False
-            other_pawns.add(self.board[(x, j)][0])
+            other_pawns.add(self._board[(x, j)][0])
         return True
 
     def _column_win(self, y: int):
         other_pawns: set[Pawns] = set()
-        for i in range(self.size):
-            if not (i, y) in self.board or self.board[(i, y)][0] in other_pawns:
+        for i in range(self._size):
+            if not (i, y) in self._board or self._board[(i, y)][0] in other_pawns:
                 return False
-            other_pawns.add(self.board[(i, y)][0])
+            other_pawns.add(self._board[(i, y)][0])
         return True
 
     def _section_win(self, x: int, y: int):
         others: set[Pawns] = set()
         for i, j in self._get_section_elements(x, y):
-            if not (i, j) in self.board or self.board[(i, j)][0] in others:
+            if not (i, j) in self._board or self._board[(i, j)][0] in others:
                 return False
-            others.add(self.board[(i, j)][0])
+            others.add(self._board[(i, j)][0])
         return True
 
     def _get_section_elements(

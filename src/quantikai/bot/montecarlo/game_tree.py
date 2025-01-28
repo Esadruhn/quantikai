@@ -69,7 +69,7 @@ class GameTree:
             return list()
         best_node = Node(board=frozen_board, move_to_play=best_move)
         best_play = [(best_node, self._game_tree[best_node])]
-        tmp_board = Board(board=frozen_board.board)
+        tmp_board = Board(board=frozen_board)
 
         for _ in range(depth):
             tmp_board.play(best_node.move_to_play)

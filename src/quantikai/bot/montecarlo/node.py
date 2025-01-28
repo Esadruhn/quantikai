@@ -15,7 +15,7 @@ class Node:
 
     def to_json(self):
         return {
-            "board": self.board.board,
+            "board": self.board.to_json(),
             "move_to_play": (
                 None if self.move_to_play is None else asdict(self.move_to_play)
             ),

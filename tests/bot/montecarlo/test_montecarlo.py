@@ -11,32 +11,24 @@ from quantikai.bot import montecarlo
 
 def test_best_move_none():
     board = Board(
-        board=[
-            [
-                (Pawns.A, Colors.BLUE),
-                (Pawns.B, Colors.BLUE),
-                (Pawns.C, Colors.BLUE),
-                (Pawns.C, Colors.BLUE),
-            ],
-            [
-                (Pawns.C, Colors.RED),
-                (Pawns.B, Colors.BLUE),
-                (Pawns.B, Colors.BLUE),
-                (Pawns.B, Colors.BLUE),
-            ],
-            [
-                (Pawns.B, Colors.BLUE),
-                (Pawns.D, Colors.RED),
-                (Pawns.B, Colors.BLUE),
-                (Pawns.B, Colors.BLUE),
-            ],
-            [
-                (Pawns.B, Colors.BLUE),
-                (Pawns.B, Colors.BLUE),
-                (Pawns.B, Colors.BLUE),
-                (Pawns.B, Colors.BLUE),
-            ],
-        ]
+        board={
+            (0, 0): (Pawns.A, Colors.BLUE),
+            (0, 1): (Pawns.C, Colors.RED),
+            (0, 2): (Pawns.B, Colors.RED),
+            (0, 3): (Pawns.B, Colors.RED),
+            (1, 0): (Pawns.B, Colors.RED),
+            (1, 1): (Pawns.C, Colors.RED),
+            (1, 2): (Pawns.B, Colors.RED),
+            (1, 3): (Pawns.B, Colors.RED),
+            (2, 0): (Pawns.B, Colors.RED),
+            (2, 1): (Pawns.D, Colors.BLUE),
+            (2, 2): (Pawns.A, Colors.BLUE),
+            (2, 3): (Pawns.B, Colors.BLUE),
+            (3, 0): (Pawns.A, Colors.BLUE),
+            (3, 1): (Pawns.D, Colors.BLUE),
+            (3, 2): (Pawns.A, Colors.BLUE),
+            (3, 3): (Pawns.D, Colors.BLUE),
+        }
     )
     blue_player = Player(
         color=Colors.BLUE,
@@ -63,32 +55,24 @@ def test_best_move_none():
 def test_best_move_last_full_board():
     # Test with only one possibility
     board = Board(
-        board=[
-            [
-                (Pawns.A, Colors.BLUE),
-                (Pawns.B, Colors.BLUE),
-                (Pawns.C, Colors.BLUE),
-                None,
-            ],
-            [
-                (Pawns.C, Colors.RED),
-                (Pawns.C, Colors.RED),
-                (Pawns.B, Colors.RED),
-                (Pawns.D, Colors.BLUE),
-            ],
-            [
-                (Pawns.A, Colors.BLUE),
-                (Pawns.D, Colors.RED),
-                (Pawns.C, Colors.BLUE),
-                None,
-            ],
-            [
-                (Pawns.D, Colors.RED),
-                (Pawns.B, Colors.BLUE),
-                (Pawns.A, Colors.RED),
-                (Pawns.A, Colors.RED),
-            ],
-        ]
+        board={
+            (0, 0): (Pawns.A, Colors.BLUE),
+            (0, 1): (Pawns.B, Colors.BLUE),
+            (0, 2): (Pawns.C, Colors.BLUE),
+            # (0, 3): None
+            (1, 0): (Pawns.C, Colors.RED),
+            (1, 1): (Pawns.C, Colors.RED),
+            (1, 2): (Pawns.B, Colors.RED),
+            (1, 3): (Pawns.D, Colors.BLUE),
+            (2, 0): (Pawns.A, Colors.BLUE),
+            (2, 1): (Pawns.D, Colors.RED),
+            (2, 2): (Pawns.C, Colors.BLUE),
+            # (2, 3): None
+            (3, 0): (Pawns.D, Colors.RED),
+            (3, 1): (Pawns.B, Colors.BLUE),
+            (3, 2): (Pawns.A, Colors.RED),
+            (3, 3): (Pawns.A, Colors.RED),
+        }
     )
     blue_player = Player(
         color=Colors.BLUE,
@@ -118,32 +102,24 @@ def test_montecarlo_algo():
     #     3 |_Dr_||_Bb_| |_Ar_||_Ar_|
     # Test with only one possibility
     board = Board(
-        board=[
-            [
-                (Pawns.A, Colors.BLUE),
-                (Pawns.B, Colors.BLUE),
-                (Pawns.C, Colors.BLUE),
-                None,
-            ],
-            [
-                (Pawns.C, Colors.RED),
-                (Pawns.C, Colors.RED),
-                (Pawns.B, Colors.RED),
-                (Pawns.D, Colors.BLUE),
-            ],
-            [
-                (Pawns.A, Colors.BLUE),
-                (Pawns.D, Colors.RED),
-                (Pawns.C, Colors.BLUE),
-                None,
-            ],
-            [
-                (Pawns.D, Colors.RED),
-                (Pawns.B, Colors.BLUE),
-                (Pawns.A, Colors.RED),
-                (Pawns.A, Colors.RED),
-            ],
-        ]
+        board={
+            (0, 0): (Pawns.A, Colors.BLUE),
+            (0, 1): (Pawns.B, Colors.BLUE),
+            (0, 2): (Pawns.C, Colors.BLUE),
+            # (0, 3): None
+            (1, 0): (Pawns.C, Colors.RED),
+            (1, 1): (Pawns.C, Colors.RED),
+            (1, 2): (Pawns.B, Colors.RED),
+            (1, 3): (Pawns.D, Colors.BLUE),
+            (2, 0): (Pawns.A, Colors.BLUE),
+            (2, 1): (Pawns.D, Colors.RED),
+            (2, 2): (Pawns.C, Colors.BLUE),
+            # (2, 3): None
+            (3, 0): (Pawns.D, Colors.RED),
+            (3, 1): (Pawns.B, Colors.BLUE),
+            (3, 2): (Pawns.A, Colors.RED),
+            (3, 3): (Pawns.A, Colors.RED),
+        }
     )
     blue_player = Player(
         color=Colors.BLUE,
@@ -186,32 +162,24 @@ def test_montecarlo_algo_depth_2():
     #     2 |_Ab_||_Dr_| |_Cb_||____|
     #     3 |_Dr_||_Bb_| |_Ar_||_Ar_|
     board = Board(
-        board=[
-            [
-                (Pawns.A, Colors.BLUE),
-                (Pawns.B, Colors.BLUE),
-                (Pawns.C, Colors.BLUE),
-                None,
-            ],
-            [
-                (Pawns.C, Colors.RED),
-                (Pawns.C, Colors.RED),
-                None,
-                (Pawns.D, Colors.BLUE),
-            ],
-            [
-                (Pawns.A, Colors.BLUE),
-                (Pawns.D, Colors.RED),
-                (Pawns.C, Colors.BLUE),
-                None,
-            ],
-            [
-                (Pawns.D, Colors.RED),
-                (Pawns.B, Colors.BLUE),
-                (Pawns.A, Colors.RED),
-                (Pawns.A, Colors.RED),
-            ],
-        ]
+        board={
+            (0, 0): (Pawns.A, Colors.BLUE),
+            (0, 1): (Pawns.B, Colors.BLUE),
+            (0, 2): (Pawns.C, Colors.BLUE),
+            # (0, 3): None
+            (1, 0): (Pawns.C, Colors.RED),
+            (1, 1): (Pawns.C, Colors.RED),
+            # (1, 2): (None
+            (1, 3): (Pawns.D, Colors.BLUE),
+            (2, 0): (Pawns.A, Colors.BLUE),
+            (2, 1): (Pawns.D, Colors.RED),
+            (2, 2): (Pawns.C, Colors.BLUE),
+            # (2, 3): None
+            (3, 0): (Pawns.D, Colors.RED),
+            (3, 1): (Pawns.B, Colors.BLUE),
+            (3, 2): (Pawns.A, Colors.RED),
+            (3, 3): (Pawns.A, Colors.RED),
+        }
     )
     blue_player = Player(
         color=Colors.BLUE,
@@ -247,16 +215,16 @@ def test_montecarlo_algo_depth_2():
         board=board.get_frozen(),
         move_to_play=Move(x=2, y=3, pawn=Pawns("B"), color=Colors.RED),
     )
-    board1 = copy.deepcopy(board.board)
-    board1[1][2] = (Pawns("B"), Colors.RED)
+    board1 = copy.deepcopy(board)
+    board1.play(red_1.move_to_play)
 
-    board2 = copy.deepcopy(board.board)
-    board2[2][3] = (Pawns("B"), Colors.RED)
+    board2 = copy.deepcopy(board)
+    board2.play(red_2.move_to_play)
 
     # second move: D BLUE (0,3)
     # winning move
     blue_1 = Node(
-        board=Board(board1).get_frozen(),
+        board=board1.get_frozen(),
         move_to_play=Move(x=0, y=3, pawn=Pawns("D"), color=Colors.BLUE),
     )
     assert set(nodes) == {root_node, red_1, red_2, blue_1}
@@ -269,12 +237,11 @@ def test_montecarlo_algo_depth_2():
 
 def test_worst_move():
     board = Board(
-        board=[
-            [(Pawns.A, Colors.BLUE), None, None, None],
-            [None, (Pawns.C, Colors.BLUE), None, None],
-            [None, None, None, None],
-            [(Pawns.B, Colors.RED), None, None, None],
-        ]
+        board={
+            (0, 0): (Pawns.A, Colors.BLUE),
+            (1, 1): (Pawns.C, Colors.BLUE),
+            (3, 0): (Pawns.B, Colors.RED),
+        }
     )
     blue_player = Player(
         color=Colors.BLUE,
@@ -296,24 +263,22 @@ def test_worst_move():
     )
     best_move = montecarlo.get_best_move(board, red_player, blue_player)
     assert best_move is not None
-    assert best_move != (1, 0, Pawns.D)
-    assert best_move != (2, 0, Pawns.C)
-    assert best_move != (2, 0, Pawns.D)
+    assert best_move != Move(1, 0, Pawns.D, Colors.RED)
+    assert best_move != Move(2, 0, Pawns.C, Colors.RED)
+    assert best_move != Move(2, 0, Pawns.D, Colors.RED)
 
 
 def test_best_move_1():
     board = Board(
-        board=[
-            [
-                (Pawns.C, Colors.RED),
-                None,
-                (Pawns.C, Colors.RED),
-                (Pawns.D, Colors.BLUE),
-            ],
-            [None, (Pawns.B, Colors.BLUE), None, (Pawns.A, Colors.BLUE)],
-            [(Pawns.B, Colors.RED), None, (Pawns.A, Colors.BLUE), None],
-            [None, None, None, None],
-        ]
+        board={
+            (0, 0): (Pawns.C, Colors.RED),
+            (0, 2): (Pawns.C, Colors.RED),
+            (0, 3): (Pawns.D, Colors.BLUE),
+            (1, 1): (Pawns.B, Colors.BLUE),
+            (1, 3): (Pawns.A, Colors.BLUE),
+            (2, 0): (Pawns.B, Colors.RED),
+            (2, 2): (Pawns.A, Colors.BLUE),
+        }
     )
     blue_player = Player(
         color=Colors.BLUE,
@@ -347,17 +312,14 @@ def test_best_move_last():
     #     2 |____||__D_| |__B_||____|
     #     3 |____||____| |____||____|
     board = Board(
-        board=[
-            [
-                (Pawns.A, Colors.BLUE),
-                (Pawns.B, Colors.BLUE),
-                (Pawns.C, Colors.BLUE),
-                None,
-            ],
-            [(Pawns.C, Colors.RED), None, None, None],
-            [None, (Pawns.D, Colors.RED), (Pawns.B, Colors.RED), None],
-            [None, None, None, None],
-        ]
+        board={
+            (0, 0): (Pawns.A, Colors.BLUE),
+            (0, 1): (Pawns.B, Colors.BLUE),
+            (0, 2): (Pawns.C, Colors.BLUE),
+            (1, 0): (Pawns.C, Colors.RED),
+            (2, 1): (Pawns.D, Colors.RED),
+            (2, 2): (Pawns.B, Colors.RED),
+        }
     )
     blue_player = Player(
         color=Colors.BLUE,

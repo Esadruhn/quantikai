@@ -162,7 +162,7 @@ def test_play():
     board.play(Move(0, 0, Pawns.A, Colors.BLUE))
     board.play(Move(3, 3, Pawns.B, Colors.RED))
     board.play(Move(1, 1, Pawns.D, Colors.BLUE))
-    assert board.board == {
+    assert board._board == {
         (0, 0): (Pawns.A, Colors.BLUE),
         (3, 3): (Pawns.B, Colors.RED),
         (1, 1): (Pawns.D, Colors.BLUE),
@@ -371,3 +371,25 @@ def test_get_possible_moves_optimize_one_section_1():
         (3, 2),
         (3, 3),
     }
+
+
+def test_from_json_empty():
+    Board.from_json(
+        body=[
+            [None, None, None, None],
+            [None, None, None, None],
+            [None, None, None, None],
+            [None, None, None, None],
+        ]
+    )
+
+
+def test_from_json():
+    Board.from_json(
+        body=[
+            [(Pawns.A, Colors.BLUE), None, None, None],
+            [None, None, None, None],
+            [None, None, None, None],
+            [None, None, None, None],
+        ]
+    )

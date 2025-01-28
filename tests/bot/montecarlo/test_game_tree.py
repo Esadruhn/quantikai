@@ -115,13 +115,11 @@ def test_get_best_play_depth_less(
     fixture_board, fixture_game_tree, fixture_parent_node, fixture_node
 ):
     # stop at depth 0
-    board = copy.deepcopy(fixture_board)
-    board.board[fixture_node.move_to_play.x][fixture_node.move_to_play.y] = (
-        fixture_node.move_to_play.pawn,
-        fixture_node.move_to_play.color,
-    )
+    frozen = fixture_board.get_frozen()
+
+    fixture_board.play(fixture_node.move_to_play)
     extra_node = Node(
-        board=board.get_frozen(), move_to_play=Move(0, 3, Pawns.C, Colors.BLUE)
+        board=fixture_board.get_frozen(), move_to_play=Move(0, 3, Pawns.C, Colors.BLUE)
     )
     fixture_game_tree.add(extra_node)
 
@@ -133,7 +131,7 @@ def test_get_best_play_depth_less(
     fixture_game_tree.compute_score(fixture_node, parent_node=fixture_parent_node)
     fixture_game_tree.compute_score(extra_node, parent_node=fixture_node)
 
-    best_play = fixture_game_tree.get_best_play(fixture_board.get_frozen(), depth=0)
+    best_play = fixture_game_tree.get_best_play(frozen, depth=0)
     assert best_play == [
         (fixture_node, MonteCarloScore(times_visited=1, score=1, uct=1.0))
     ]
@@ -143,13 +141,10 @@ def test_get_best_play_depth_1(
     fixture_board, fixture_game_tree, fixture_parent_node, fixture_node
 ):
     # stop at depth 0
-    board = copy.deepcopy(fixture_board)
-    board.board[fixture_node.move_to_play.x][fixture_node.move_to_play.y] = (
-        fixture_node.move_to_play.pawn,
-        fixture_node.move_to_play.color,
-    )
+    frozen = fixture_board.get_frozen()
+    fixture_board.play(fixture_node.move_to_play)
     extra_node = Node(
-        board=board.get_frozen(), move_to_play=Move(0, 3, Pawns.C, Colors.BLUE)
+        board=fixture_board.get_frozen(), move_to_play=Move(0, 3, Pawns.C, Colors.BLUE)
     )
     fixture_game_tree.add(extra_node)
 
@@ -161,7 +156,7 @@ def test_get_best_play_depth_1(
     fixture_game_tree.compute_score(fixture_node, parent_node=fixture_parent_node)
     fixture_game_tree.compute_score(extra_node, parent_node=fixture_node)
 
-    best_play = fixture_game_tree.get_best_play(fixture_board.get_frozen(), depth=1)
+    best_play = fixture_game_tree.get_best_play(frozen, depth=1)
     assert best_play == [
         (fixture_node, MonteCarloScore(times_visited=1, score=1, uct=1.0)),
         (extra_node, MonteCarloScore(times_visited=1, score=1, uct=1.0)),
