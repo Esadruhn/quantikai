@@ -2,11 +2,10 @@
 
 import copy
 
-
-from quantikai.bot.montecarlo.main import _montecarlo_algo
-from quantikai.game import Board, Pawns, Colors, Player, Move
-from quantikai.bot.montecarlo.node import Node
 from quantikai.bot import montecarlo
+from quantikai.bot.montecarlo.main import _montecarlo_algo
+from quantikai.bot.montecarlo.node import Node
+from quantikai.game import Board, Colors, Move, Pawns, Player
 
 
 def test_best_move_none():

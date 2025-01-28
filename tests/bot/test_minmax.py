@@ -1,10 +1,7 @@
 """Tests for `minmax` package."""
 
-import pytest
-
-
-from quantikai.game import Board, Pawns, Colors, Player, Move
 from quantikai.bot import minmax
+from quantikai.game import Board, Colors, Move, Pawns, Player
 
 
 def test_best_move_none():

@@ -1,9 +1,10 @@
-import pathlib
 import json
+import pathlib
 
-from quantikai.game import Board, FrozenBoard, Move, Colors
 from quantikai.bot.montecarlo.node import Node
 from quantikai.bot.montecarlo.score import MonteCarloScore
+from quantikai.game import Board, Colors, FrozenBoard, Move
+from quantikai.game.exceptions import InvalidFileException
 
 
 class GameTreeError(Exception):
@@ -22,16 +23,8 @@ class GameTree:
     def add(self, node: Node):
         self._game_tree.setdefault(node, MonteCarloScore())
 
-    def compute_score(self, node: Node, parent_node: Node | None):
-        # TODO - game tree should be method agnostic ie no knowledge of montecarlo
-        times_visited = 0
-        # two possibilities: root node has None for parent node
-        # and parent_node is not in game tree because this is a graph, not a tree
-        if parent_node in self._game_tree:
-            times_visited = self._game_tree[parent_node].times_visited
-        return self._game_tree[node].compute_score(
-            times_parent_visited=times_visited,
-        )
+    def compute_score(self, node: Node):
+        return self._game_tree[node].compute_score()
 
     def update(self, node: Node, reward: int):
         self._game_tree[node].times_visited += 1
@@ -91,33 +84,72 @@ class GameTree:
         move_stats = [
             (node.move_to_play, montecarlo)
             for node, montecarlo in self._game_tree.items()
-            if node.board == best_play[-1][0].board and node.move_to_play is not None
+            if node.board == best_play[-1][0].board
+            and node.move_to_play is not None
         ]
-        move_stats.sort(key=lambda x: x[1].times_visited, reverse=True)
+        move_stats.sort(
+            key=lambda x: (x[1].times_visited, x[1].score), reverse=True
+        )
         return move_stats
+
+    def get(self, depth: int) -> "GameTree":
+        return GameTree(
+            {
+                node: montecarloscore
+                for node, montecarloscore in self._game_tree.items()
+                if len(node.board) == depth
+            }
+        )
+
+    @staticmethod
+    def sum(game_trees: list["GameTree"]) -> "GameTree":
+        if len(game_trees) == 0:
+            return GameTree()
+        if len(game_trees) == 1:
+            return game_trees[0]
+        new_gm = dict()
+        for node in game_trees[0]._game_tree:
+            mscores = [
+                g._game_tree[node] for g in game_trees if node in g._game_tree
+            ]
+            new_gm[node] = MonteCarloScore(
+                times_visited=sum([m.times_visited for m in mscores]),
+                times_parent_visited=sum(
+                    [m.times_parent_visited for m in mscores]
+                ),
+                score=sum([m.score for m in mscores]),
+                uct=sum([m.uct for m in mscores]),
+            )
+        return GameTree(new_gm)
 
     # TODO
     # Test, and remove these functions if I do not implement a pre-compute of the game tree
-    def to_file(self, path: pathlib.Path, player_color: Colors, max_depth: int = 16):
-        game_tree_json = (
-            {
-                "node": node.to_compressed(),
-                "montecarlo": montecarlo.to_compressed(),
-            }
-            for node, montecarlo in self._game_tree.items()
-            if len(node.board) <= max_depth
-            and node.move_to_play is not None
-            and node.move_to_play.color == player_color
-        )
+    def to_file(
+        self, path: pathlib.Path, player_color: Colors, max_depth: int = 16
+    ):
+        # TODO - possible improvement: for each board keep only the best move
+        # Not mandatory as the file size is < 500kB and it is nice for analysis purpose (eg board analysis function)
+        if not path.is_dir():
+            raise InvalidFileException(
+                f"{path} does not exist or is not a directory."
+            )
 
-        class StreamArray(list):
-            def __iter__(self):
-                return game_tree_json
-
-            def __len__(self):
-                return 1
-
-        pathlib.Path(path).write_text(json.dumps(StreamArray()))
+        for idx in range(max_depth):
+            file_path = path / self.get_file_name(
+                depth=idx, player_color=player_color
+            )
+            game_tree_json = [
+                {
+                    "node": node.to_compressed(),
+                    "montecarlo": montecarlo.to_compressed(),
+                }
+                for node, montecarlo in self._game_tree.items()
+                if len(node.board) == idx
+                and node.move_to_play is not None
+                and node.move_to_play.color == player_color
+            ]
+            if len(game_tree_json) > 0:
+                file_path.write_text(json.dumps(game_tree_json))
 
     class GameTreeDecoder(json.JSONDecoder):
         def __init__(self, *args, **kwargs):
@@ -133,10 +165,29 @@ class GameTree:
                 )
             return dct
 
+    @staticmethod
+    def get_file_name(depth: int, player_color: Colors):
+        return f"{depth}_{player_color.value}.json"
+
     @classmethod
-    def from_file(cls, path: pathlib.Path):
-        game_tree_as_list = json.loads(
-            pathlib.Path(path).read_text(), cls=cls.GameTreeDecoder
+    def from_file(
+        cls, folder_path: pathlib.Path | None, depth: int, player_color: Colors
+    ):
+        if folder_path is None:
+            raise InvalidFileException(
+                f"The Montecarlo game tree file {folder_path} does not exist."
+            )
+        file_path = pathlib.Path(folder_path) / cls.get_file_name(
+            depth=depth, player_color=player_color
         )
-        game_tree: dict[Node, MonteCarloScore] = {n: m for n, m in game_tree_as_list}
+        if not file_path.exists():
+            raise InvalidFileException(
+                f"The Montecarlo game tree file {file_path} does not exist."
+            )
+        game_tree_as_list = json.loads(
+            file_path.read_text(), cls=cls.GameTreeDecoder
+        )
+        game_tree: dict[Node, MonteCarloScore] = {
+            n: m for n, m in game_tree_as_list
+        }
         return cls(game_tree)

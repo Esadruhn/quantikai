@@ -56,22 +56,14 @@ lint: lint/flake8 ## check style
 test: ## run tests quickly with the default Python
 	pytest
 
-# This takes a very long time to execute
-# coverage: ## check code coverage quickly with the default Python
-# 	coverage run --source quantikai -m pytest
-# 	coverage report -m
-# 	coverage html
-# 	$(BROWSER) htmlcov/index.html
-
 install: clean ## install the package to the active Python's site-packages ## python setup.py install
-	pip install -r requirements_dev.txt
-	pip install --editable . 
+	pip install --editable .[dev]
 
 cli: # e.g. make cli ARG=bot
-	python src/quantikai/cli.py $(ARG)
+	quantikai $(ARG)
 
 dev: 
 	flask --app src/quantikai/wsgi.py run --debug
 
 devg:
-	gunicorn -w 4 'quantikai.wsgi:create_app()'
+	gunicorn --workers 3 'quantikai.wsgi:create_app()'

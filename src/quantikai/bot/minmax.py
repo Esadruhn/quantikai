@@ -1,6 +1,6 @@
 import copy
 
-from quantikai.game import Board, Player, Colors, Move
+from quantikai.game import Board, Colors, Move, Player
 
 
 def get_best_move(
@@ -42,10 +42,6 @@ def _recursive_minmax(
         current_player.color,
         optimize=True,
     )
-    if len(possible_moves) == 0:
-        if current_player.color == player_max:
-            return -1, None
-        return 1, None
 
     best_move = None
     best_score = None
@@ -98,4 +94,11 @@ def _recursive_minmax(
             elif best_score == move_score and depth > best_depth:
                 best_move = move
                 best_depth: int = depth
+
+    if best_move is None:
+        # no possible move, leaf node
+        if current_player.color == player_max:
+            return -1, None
+        return 1, None
+
     return (best_score, best_move)

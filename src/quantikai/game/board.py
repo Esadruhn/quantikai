@@ -1,9 +1,8 @@
 from dataclasses import dataclass
 from typing import Generator
-import json
 
-from quantikai.game.exceptions import InvalidMoveError
 from quantikai.game.enums import Colors, Pawns
+from quantikai.game.exceptions import InvalidMoveError
 from quantikai.game.move import Move
 
 
@@ -29,7 +28,12 @@ class FrozenBoard:
         return cls(
             frozenset(
                 {
-                    (int(item[0]), int(item[1]), Pawns[item[2]], Colors[item[3]])
+                    (
+                        int(item[0]),
+                        int(item[1]),
+                        Pawns[item[2]],
+                        Colors[item[3]],
+                    )
                     for item in body
                 }
             )
@@ -40,7 +44,12 @@ class Board:
     _board: dict[tuple[int, int], tuple[Pawns, Colors]]
     _size: int = 4
 
-    def __init__(self, board=None):
+    def __init__(
+        self,
+        board: (
+            FrozenBoard | dict[tuple[int, int], tuple[Pawns, Colors]] | None
+        ) = None,
+    ):
         if board is not None:
             if isinstance(board, FrozenBoard):
                 self._board = {(x, y): (p, c) for x, y, p, c in board.items()}
@@ -51,6 +60,9 @@ class Board:
                 raise
         else:
             self._board = dict()
+
+    def __len__(self):
+        return len(self._board)
 
     @classmethod
     def from_json(cls, body: list[list[tuple[str, str] | None]]):
@@ -79,12 +91,12 @@ class Board:
             for row_nb in range(self._size)
         ]
 
-    def play(self, move: Move):
-        self._check_move_is_valid(move)
+    def play(self, move: Move, strict: bool = True):
+        if strict:
+            self._check_move_is_valid(move)
         self._board[(move.x, move.y)] = (move.pawn, move.color)
         return self._move_is_a_win(move.x, move.y)
 
-    # TODO
     def print(self):
         upper_idx = "  "
         for x in range(0, 4):
@@ -123,7 +135,7 @@ class Board:
 
     def get_possible_moves(
         self, pawns: list[Pawns], color: Colors, optimize=False
-    ) -> set[Move]:
+    ):
         """_summary_
 
         Args:
@@ -134,51 +146,24 @@ class Board:
         Returns:
             set[Move]: _description_
         """
+        moves = set()
+        conditions = list()
         if optimize:
-            # Case 1: No pawn on the board
-            if len(self._board) == 0:
-                # Only need to check for one pawn and one section minus one cell because of symmetry
-                # Actually I am not even sure the first move matters
-                return {
-                    Move(0, 0, Pawns.A, color),
-                    Move(0, 1, Pawns.A, color),
-                    Move(1, 1, Pawns.A, color),
-                }
-            # Case 2: 1 pawn on the board
-            # Diagonal symmetry: both sections next to the played section are the same and in opposite section 2 cells are
-            # the same
-            # Pawn: either play the same pawn or a different one. If different, does not matter which one
-            if len(self._board) == 1:
-                (bx, by), (bpawn, _) = list(self._board.items())[0]
-                other_pawn = [p for p in Pawns if p != bpawn][0]
-                return (
-                    {
-                        # other pawn, same section
-                        Move(i, j, other_pawn, color)
-                        for (i, j) in self._get_section_elements(bx, by)
-                        if (i, j) != (bx, by)
-                    }
-                    | {
-                        # other pawn, adjacent section
-                        Move(i, j, other_pawn, color)
-                        for (i, j) in self._get_section_elements((bx + 2) % 4, by)
-                    }
-                    | {
-                        # same pawn, adjacent section (only 2 possible positions)
-                        Move(i, j, bpawn, color)
-                        for (i, j) in self._get_section_elements((bx + 2) % 4, by)
-                        if i != bx and j != by
-                    }
-                    | {
-                        # same or other pawn, opposite section
-                        Move(i, j, p, color)
-                        for p in [bpawn, other_pawn]
-                        for i, j in self._get_section_elements(
-                            (bx + 2) % 4, (by + 2) % 4
-                        )
-                    }
-                )
-        # Get all possible moves
+            # playable pawns are those already on board + one unknown
+            pawns_on_board = {p for p, _ in self._board.values() if p in pawns}
+            extra_pawns = set(pawns) - pawns_on_board
+            pawns = list(pawns_on_board)
+            if len(extra_pawns) > 0:
+                pawns.append(list(extra_pawns)[0])
+            if self._horizontal_symmetry() == self._board:
+                conditions.append(lambda x, y: x <= 1)
+            if self._vertical_symmetry() == self._board:
+                conditions.append(lambda x, y: y <= 1)
+            if self._diag_left_symmetry() == self._board:
+                conditions.append(lambda x, y: x <= y)
+            if self._diag_right_symmetry() == self._board:
+                conditions.append(lambda x, y: x + y <= 3)
+
         moves: set = {
             (i, j, p, color)
             for i in range(self._size)
@@ -194,8 +179,12 @@ class Board:
                     moves.discard((bx, idx, bpawn, color))
                 for i, j in self._get_section_elements(bx, by):
                     moves.discard((i, j, bpawn, color))
-        # Optimization: from 90s to 59s by using tuples instead of Move in the previous steps
-        return {Move(*item) for item in moves}
+            # Optimization: 30% speed-up using tuples instead of Move in the previous step
+        for item in moves:
+            if all([c(item[0], item[1]) for c in conditions]):
+                yield Move(*item)
+            else:
+                continue
 
     def get_frozen(self) -> FrozenBoard:
         return FrozenBoard(
@@ -203,7 +192,12 @@ class Board:
         )
 
     def _check_move_is_valid(self, move: Move):
-        if move.x < 0 or move.y < 0 or move.x >= self._size or move.y >= self._size:
+        if (
+            move.x < 0
+            or move.y < 0
+            or move.x >= self._size
+            or move.y >= self._size
+        ):
             raise InvalidMoveError(
                 "x and y must be between 0 and 4, their values are: "
                 + str(move.x)
@@ -218,14 +212,18 @@ class Board:
                 and self._board[(move.x, j)][0] == move.pawn
                 and self._board[(move.x, j)][1] != move.color
             ):
-                raise InvalidMoveError("there is an opponent's pawn in that row")
+                raise InvalidMoveError(
+                    "there is an opponent's pawn in that row"
+                )
         for i in range(self._size):
             if (
                 (i, move.y) in self._board
                 and self._board[(i, move.y)][0] == move.pawn
                 and self._board[(i, move.y)][1] != move.color
             ):
-                raise InvalidMoveError("there is an opponent's pawn in that column")
+                raise InvalidMoveError(
+                    "there is an opponent's pawn in that column"
+                )
         # check section
         for i, j in self._get_section_elements(move.x, move.y):
             if (
@@ -233,10 +231,14 @@ class Board:
                 and self._board[(i, j)][0] == move.pawn
                 and self._board[(i, j)][1] != move.color
             ):
-                raise InvalidMoveError("there is an opponent's pawn in that section")
+                raise InvalidMoveError(
+                    "there is an opponent's pawn in that section"
+                )
 
     def _move_is_a_win(self, x: int, y: int):
-        return self._row_win(x) or self._column_win(y) or self._section_win(x, y)
+        return (
+            self._row_win(x) or self._column_win(y) or self._section_win(x, y)
+        )
 
     def _ctxt(self, txt: str, color: Colors | None = None) -> str:
         if color == "BLUE":
@@ -247,7 +249,10 @@ class Board:
     def _row_win(self, x: int):
         other_pawns: set[Pawns] = set()
         for j in range(self._size):
-            if not (x, j) in self._board or self._board[(x, j)][0] in other_pawns:
+            if (
+                not (x, j) in self._board
+                or self._board[(x, j)][0] in other_pawns
+            ):
                 return False
             other_pawns.add(self._board[(x, j)][0])
         return True
@@ -255,7 +260,10 @@ class Board:
     def _column_win(self, y: int):
         other_pawns: set[Pawns] = set()
         for i in range(self._size):
-            if not (i, y) in self._board or self._board[(i, y)][0] in other_pawns:
+            if (
+                not (i, y) in self._board
+                or self._board[(i, y)][0] in other_pawns
+            ):
                 return False
             other_pawns.add(self._board[(i, y)][0])
         return True
@@ -277,3 +285,15 @@ class Board:
             for i in range(2 * (x // 2), 2 * (x // 2 + 1))
             for j in range(2 * (y // 2), 2 * (y // 2 + 1))
         )
+
+    def _horizontal_symmetry(self) -> dict:
+        return {(3 - x, y): pc for ((x, y), pc) in self._board.items()}
+
+    def _vertical_symmetry(self) -> dict:
+        return {(x, 3 - y): pc for ((x, y), pc) in self._board.items()}
+
+    def _diag_left_symmetry(self) -> dict:
+        return {(y, x): pc for ((x, y), pc) in self._board.items()}
+
+    def _diag_right_symmetry(self) -> dict:
+        return {(3 - y, 3 - x): pc for ((x, y), pc) in self._board.items()}

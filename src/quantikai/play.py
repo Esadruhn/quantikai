@@ -1,7 +1,6 @@
 import itertools
-import random
 
-from quantikai import game, bot
+from quantikai import bot, game
 
 
 class InvalidInputError(Exception):
@@ -20,13 +19,15 @@ def parse_input(user_input: str):
         int(inp[1])
     except ValueError:
         raise InvalidInputError(
-            "Please enter the coordinates of your pawn as numbers separated by a space, e.g. 0 1 "
+            "Please enter the coordinates of your pawn as"
+            "numbers separated by a space, e.g. 0 1 "
         )
     try:
         game.Pawns[inp[2]]
     except:
         raise InvalidInputError(
-            "Valid values for the pawn are: " + str([x.name for x in game.Pawns])
+            "Valid values for the pawn are: "
+            + str([x.name for x in game.Pawns])
         )
     return int(inp[0]), int(inp[1]), game.Pawns[inp[2]]
 
@@ -47,7 +48,11 @@ def _human_player_loop(board, player):
     x, y, pawn = None, None, None
     while 1:
         user_input = input(
-            "Player " + player.color.name + ", please play (" + pawn_list + ")\n"
+            "Player "
+            + player.color.name
+            + ", please play ("
+            + pawn_list
+            + ")\n"
         )
         try:
             x, y, pawn = parse_input(user_input)
@@ -75,7 +80,9 @@ def human_play():
         try:
             is_a_win = _human_player_loop(board, player)
             if is_a_win:
-                print("Congratulations, player " + player.color.name + " WINS !")
+                print(
+                    "Congratulations, player " + player.color.name + " WINS !"
+                )
                 break
         except game.InvalidMoveError as e:
             print(e)
@@ -83,7 +90,9 @@ def human_play():
         player = next(player_cycle)
         if not board.have_possible_move(player.color):
             print(
-                "Player " + player.color.name + " has no possible move left, he loses!"
+                "Player "
+                + player.color.name
+                + " has no possible move left, he loses!"
             )
             break
 
@@ -122,14 +131,18 @@ def bot_play():
 
                 move = bot.get_best_move(board, player, other_player)
                 if move is None:
-                    print("Player " + player.color.name + " gives up and loses.")
+                    print(
+                        "Player " + player.color.name + " gives up and loses."
+                    )
                     break
                 is_a_win = board.play(move)
                 player.remove(move.pawn)
                 board.print()
 
             if is_a_win:
-                print("Congratulations, player " + player.color.name + " WINS !")
+                print(
+                    "Congratulations, player " + player.color.name + " WINS !"
+                )
                 break
         except game.InvalidMoveError as e:
             print(e)

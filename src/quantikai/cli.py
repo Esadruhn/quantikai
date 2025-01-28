@@ -1,10 +1,11 @@
 """Console script for quantikai"""
 
-import typer
 import pathlib
+
+import typer
 from rich.console import Console
 
-from quantikai import game, play, bot
+from quantikai import bot, game, play
 
 app = typer.Typer()
 console = Console()
@@ -75,25 +76,56 @@ def timer():
 
 
 @app.command("montecarlo")
-def generate_montecarlo_tree():
+def generate_montecarlo_tree(depth: int = 16):
+    montecarlo_dir = pathlib.Path.cwd() / "montecarlo"
+    montecarlo_dir.mkdir(parents=True, exist_ok=True)
+    use_depth = True
+    iterations = 25000  # 50000 OK, 100000 = process killed
+    num_process = 5
     bot.montecarlo.generate_tree(
-        path=pathlib.Path("montecarlo_tree_blue.json"),
+        path=montecarlo_dir,
         board=game.Board(),
         first_player=game.Player(color=game.Colors.BLUE),
         second_player=game.Player(color=game.Colors.RED),
         main_player_color=game.Colors.RED,
-        iterations=50000, # 50000 OK, 100000 = process killed
-        use_depth=True,
+        iterations=iterations,
+        use_depth=use_depth,
+        max_depth=depth,
+        num_process=num_process,
     )
-    # Generate tree for the other player color
-    # bot.montecarlo.generate_tree(
-    #     path=pathlib.Path("montecarlo_tree_red.json"),
-    #     board=game.Board(),
-    #     current_player=game.Player(color=game.Colors.RED),
-    #     other_player=game.Player(color=game.Colors.BLUE),
-    #     iterations=50000,
-    #     use_depth=True,
-    # )
+    bot.montecarlo.generate_tree(
+        path=montecarlo_dir,
+        board=game.Board(),
+        first_player=game.Player(color=game.Colors.BLUE),
+        second_player=game.Player(color=game.Colors.RED),
+        main_player_color=game.Colors.BLUE,
+        iterations=iterations,
+        use_depth=use_depth,
+        max_depth=depth,
+        num_process=num_process,
+    )
+    bot.montecarlo.generate_tree(
+        path=montecarlo_dir,
+        board=game.Board(),
+        first_player=game.Player(color=game.Colors.RED),
+        second_player=game.Player(color=game.Colors.BLUE),
+        main_player_color=game.Colors.RED,
+        iterations=iterations,
+        use_depth=use_depth,
+        max_depth=depth,
+        num_process=num_process,
+    )
+    bot.montecarlo.generate_tree(
+        path=montecarlo_dir,
+        board=game.Board(),
+        first_player=game.Player(color=game.Colors.RED),
+        second_player=game.Player(color=game.Colors.BLUE),
+        main_player_color=game.Colors.BLUE,
+        iterations=iterations,
+        use_depth=use_depth,
+        max_depth=depth,
+        num_process=num_process,
+    )
 
 
 if __name__ == "__main__":

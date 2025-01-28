@@ -23,15 +23,13 @@ Tested on Linux with Python 3.12
         make install
 
         # Get help
-        python src/quantikai/cli.py --help
-        # Same as:
-        make cli ARG=--help
+        quantikai --help
 
         # Play against a bot
-        make cli ARG=bot
+        quantikai bot
 
         # Play again yourself
-        make cli ARG=human
+        quantikai human
 
         # Deploy the web interface
         # with gunicorn (recommended)
@@ -47,20 +45,22 @@ To use the web interface, do:
         make devg
 ```
 
+FEATURE IN PROGRESS:
+
 To get a better bot (from the web interface), do:
 
 ```bash
-        make cli ARG=montecarlo
+        quantikai montecarlo --depth=2
         make devg
 ```
 
-`make cli ARG=montecarlo` pre-computes the game tree, going much deeper than the on-the-fly algorithm. The result is then used for the first
-few moves on the board, subsequent moves are calcultaed on the fly.
+`quantikai montecarlo --depth=2` pre-computes the game tree, going much deeper than the on-the-fly algorithm. The result is then used for the first
+2 moves on the board, subsequent moves are calcultaed on the fly.
 
 ## Timing
 
 ```bash
-        make cli ARG=timer
+        quantikai timer
 ```
 
 This writes to a file "bot_algo_time.json".
@@ -156,6 +156,38 @@ Each run is composed of 3 phases:
   Update the score of each node that has been visited during this run. If the node is a move by the current player, add the reward.
   If the node is a move by the opponent, then flip the reward: 0 for a win of the current player, number of moves played for a loss.
 
+#### Montecarlo - pre-compute the game tree
+
+Pre-compute the game tree and save it to files (one file per number of pieces on the board and color to play to keep the files small enough to hold in memory).  
+Expected advantage: compute the tree with way more iterations, getting a better result.
+The issue is that in that case, we compute every state of the board instead of using symmetries for the first 2 moves. Indeed, the opponent may play anything, so if we compute only non-redundant moves we have to map the other board state to these moves. Otherwise, the increased number of moves to compute (eg 16*4 instead of 3 for the first move) negates the advantage of offline computation.
+
+#### Montecarlo - paralellization
+
+See the biography for running parallel computing for the MonteCarlo method, the simplest is also the fastest: `single-run parallelization`, run n iterations in different processes without sharing data and sum the results.
+
+Significant speed-up with the CLI, but the `multiprocess` library interfers with the gunicorn processes (`multiprocess.dummy` is worse than) so it needs more work to use it with the web app.
+
+10'000 iterations, algo time per number of pawns on the board:
+
+```json
+    "0": 16.65,
+    "1": 14.92,
+    "2": 13.11,
+    "3": 2.9,
+    "4": 10.3,
+```
+
+10'000 iterations, 5 processes running 2'000 iterations each:
+
+```json
+    "0": 4.3,
+    "1": 4.96,
+    "2": 4.29,
+    "3": 1.15,
+    "4": 3.07,
+```
+
 ### Speed bottleneck
 
 A Node contains a board and the next move to play.
@@ -171,7 +203,7 @@ How to measure time gains:
     print(min(d.repeat(20, 100000)))
   ```
 
-- for global algos: `make cli ARG=timer`
+- for global algos: `quantikai timer`
 
 #### Board operations: save the board state as a dict of moves vs a list of list
 
@@ -246,7 +278,7 @@ Second try:
 - save only up to depth 3 included (for a sequence of play Blue(depth=0), Red(depth=1), Blue(depth=2), Red(depth=3)), produces a 81Mb file
 - at move 3, most nodes have not been visited
 
-So to get improvements with the pre-compute method, we need to exploit symetries and do more iterations.
+So to get improvements with the pre-compute method, we need to exploit symetries and possibly do more iterations.
 
 #### Node class: save children
 
@@ -257,11 +289,16 @@ TODO
 
 #### Parallel computation
 
-Instead of `n_iter` sequential runs, we might imagine doing `n` runs in parallel for `n_iter` times. We would introduce a random element in the
-selection steps, so that the `n` runs are different. This is probably getting closer to a reinforcement learning setup, with a Markov decision process.
+For the Monte Carlo tree search, there are 3 methods of parallelization:
+
+- leaf parallelization
+- root (or single-run) parallelization
+- tree parallelization
 
 ## Sources
 
 1. [A Survey of MonteCarlo Search Methods](http://www.incompleteideas.net/609%20dropbox/other%20readings%20and%20resources/MCTS-survey.pdf)
-2. [AlphaZero](https://arxiv.org/pdf/1712.01815)
-3. [MuZero](https://arxiv.org/pdf/1911.08265)
+2. [Tristan Cazenave, Nicolas Jouandeau. On the Parallelization of UCT. Computer Games Workshop, Jun 2007, Amsterdam, Netherlands. ￿hal-02310186￿](https://hal.science/hal-02310186/document)
+3. [Parallel Monte-Carlo Tree Search](https://dke.maastrichtuniversity.nl/m.winands/documents/multithreadedMCTS2.pdf)
+4. [AlphaZero](https://arxiv.org/pdf/1712.01815)
+5. [MuZero](https://arxiv.org/pdf/1911.08265)

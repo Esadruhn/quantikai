@@ -18,15 +18,23 @@ classifiers = [
 ]
 license = {text = "MIT license"}
 dependencies = [
-  
+    "bump2version==0.5.11",
+    "wheel==0.33.6",
+    "typer==0.15.1",
+    "watchdog==6.0.0",
+    "Flask==3.1.0",
+    "gunicorn==23.0.0",
 ]
+[project.scripts]
+quantikai = "quantikai.cli:app"
 
 [project.optional-dependencies]
 dev = [
-    "coverage",  # testing
-    "black",  # linting
-    "flake8",  # linting
-    "pytest",  # testing
+    "coverage==4.5.4",  # testing
+    "black==24.10.0",  # linting
+    "flake8==7.1.1",  # linting
+    "pytest==6.2.4",  # testing
+    "tox==3.14.0",
 ]
 
 [project.urls]
@@ -55,9 +63,32 @@ strict = true
 warn_unreachable = true
 warn_no_return = true
 
-[[tool.mypy.overrides]]
+[tool.mypy.overrides]
 # Don't require test functions to include types
 module = "tests.*"
 allow_untyped_defs = true
 disable_error_code = "attr-defined"
+
+[tool.black]
+line-length = 79
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
+
+[tool.flake8]
+max-line-length = 79
+max-complexity = 18
+
+
 

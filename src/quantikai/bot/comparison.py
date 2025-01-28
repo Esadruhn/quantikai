@@ -1,33 +1,13 @@
 """Compare the execution time of each method"""
 
-import datetime
-import time
 import copy
-import pathlib
+import datetime
 import json
+import pathlib
+import timeit
 
 from quantikai.bot import minmax, montecarlo
-from quantikai.game import Board, Pawns, Colors, Player, Move
-
-TIMEOUT = 60
-
-
-def timeit(f, n_iter=100):
-    """timeit decorator"""
-
-    def timed(*args, **kw):
-        times = list()
-        for _ in range(n_iter):
-            ts = time.time()
-            f(*args, **kw)
-            te = time.time()
-            times.append(te - ts)
-            # TIMEOUT - stop there if it takes too long
-            if te - ts > TIMEOUT:
-                break
-        return round(sum(times) / len(times), 2)
-
-    return timed
+from quantikai.game import Board, Colors, Move, Pawns, Player
 
 
 def init_test_values():
@@ -75,18 +55,24 @@ def init_test_values():
 
 def get_method_times():
 
-    n_iter = 10
+    n_iter = 5
+    n_repeat = 1
+
+    timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+
     times = {
         "n_iter": n_iter,
-        "timestamp": str(datetime.datetime.now()),
+        "n_repeat": n_repeat,
+        "timestamp": timestamp,
         "montecarlo": dict(),
         "minmax": dict(),
     }
     idx = 0
-    result_file = pathlib.Path("bot_algo_time.json")
+    result_file = pathlib.Path("bot_algo_time_" + timestamp + ".json")
     current_color = Colors.BLUE
     times["montecarlo"]["args"] = {
-        "iterations": 1000,
+        "num_process": 5,
+        "iterations": 2000,
         "use_depth": True,
     }
     times["minmax"]["args"] = {}
@@ -95,27 +81,37 @@ def get_method_times():
     other_player = players[1]
     for board, player in zip(boards, players):
         if idx >= 4:
-            time_res_min = timeit(minmax.get_best_move, n_iter=n_iter)(
+            d = timeit.Timer(
+                lambda: minmax.get_best_move(
+                    board=board,
+                    current_player=player,
+                    other_player=other_player,
+                    **times["minmax"]["args"]
+                )
+            )
+            times["minmax"][idx] = round(
+                min(d.repeat(n_repeat, n_iter)) / n_iter, 2
+            )
+
+        d = timeit.Timer(
+            lambda: montecarlo.get_best_move(
                 board=board,
                 current_player=player,
                 other_player=other_player,
-                **times["minmax"]["args"]
+                **times["montecarlo"]["args"]
             )
-            times["minmax"][idx] = time_res_min
-
-        tim_res_mont = timeit(montecarlo.get_best_move, n_iter=n_iter)(
-            board=board,
-            current_player=player,
-            other_player=other_player,
-            **times["montecarlo"]["args"]
         )
-        times["montecarlo"][idx] = tim_res_mont
+        times["montecarlo"][idx] = round(
+            min(d.repeat(n_repeat, n_iter)) / n_iter, 2
+        )
 
         # Update the measures at every iteration
         result_file.write_text(json.dumps(times, indent=2))
 
         idx += 1
-        current_color = Colors.BLUE if current_color == Colors.BLUE else Colors.RED
-        other_player = player
+        current_color: Colors = (
+            Colors.RED if current_color == Colors.BLUE else Colors.BLUE
+        )
+        other_player: Player = player
 
     return times
