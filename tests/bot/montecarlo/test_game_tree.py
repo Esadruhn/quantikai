@@ -1,7 +1,5 @@
 import pytest
-import copy
 
-from quantikai.bot.montecarlo import game_tree
 from quantikai.bot.montecarlo.main import GameTree, MonteCarloScore
 from quantikai.bot.montecarlo.score import DEFAULT_UCT
 from quantikai.game import Board, Pawns, Colors, Move

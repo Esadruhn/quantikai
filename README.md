@@ -132,7 +132,7 @@ Each run is composed of 3 phases:
 
 1. Selection
 
-  Select the next move: if a move has not been tried yet, choose it. Else, use the UCP formula to compute
+  Select the next move: if a move has not been tried yet, choose it. Else, use the UCB formula to compute
   each move UCT value and choose the one with the max UCT value.
 
 2. Evaluate the node
@@ -226,8 +226,11 @@ On the top of my head, to reduce the file size:
 - require less space to save a node (do not save all values or find a more compact way of writing them), e.g. Ar for an A red pawn.
 - save the "levels" (one level = a number of pawns on the board + whether it is player 1 or 2's turn) in different files
 
-Second try: save the data in a more compressed way, computed with 50'000 iterations, produces a 680Mb file
-naive implementation with file loaded at each request
+Second try: save the data in a more compressed way, computed with 50'000 iterations, save only up to depth 4 included, produces a 355Mb file
+naive implementation:
+
+- pre-compute the whole game tree without taking advantage of board symmetries
+- with file loaded at each request
 
 #### Node class: save children
 

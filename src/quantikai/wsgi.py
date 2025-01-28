@@ -6,6 +6,7 @@ from quantikai.bot import montecarlo
 
 PLAYER_WIN_MSG = "Congratulations, you win!"
 BOT_WIN_MSG = "The bot wins!"
+# TODO - not using the file
 MONTECARLO_FILE = pathlib.Path("montecarlo_tree_blue.json")
 
 

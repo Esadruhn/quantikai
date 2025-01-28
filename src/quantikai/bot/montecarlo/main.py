@@ -8,7 +8,7 @@ from quantikai.bot.montecarlo.game_tree import GameTree
 
 ITERATIONS = 5000
 USE_DEPTH = True
-GAME_TREE_FILE_MAX_DEPTH = 4
+GAME_TREE_FILE_MAX_DEPTH = 2
 
 
 def _explore_node(
@@ -271,4 +271,4 @@ def generate_tree(
         use_depth=use_depth,
         all_possible_moves=True,  # compute the whole tree, no optimization on "get_possible_moves"
     )
-    game_tree.to_file(path=path, max_depth=max_depth)
+    game_tree.to_file(path=path, player_color=current_player.color, max_depth=max_depth)
