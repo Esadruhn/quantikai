@@ -44,8 +44,18 @@ Tested on Linux with Python 3.12
 To use the web interface, do:
 
 ```bash
-        make dev
+        make devg
 ```
+
+To get a better bot (from the web interface), do:
+
+```bash
+        make cli ARG=montecarlo
+        make devg
+```
+
+`make cli ARG=montecarlo` pre-computes the game tree, going much deeper than the on-the-fly algorithm. The result is then used for the first
+few moves on the board, subsequent moves are calcultaed on the fly.
 
 ## Timing
 
