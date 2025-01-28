@@ -146,16 +146,47 @@ Each run is composed of 3 phases:
   Update the score of each node that has been visited during this run. If the node is a move by the current player, add the reward.
   If the node is a move by the opponent, then flip the reward: 0 for a win of the current player, number of moves played for a loss.
 
-### Speed bottleneck - `Board.get_possible_moves`
-
-`get_possible_moves` to compute the possible next moves in MonteCarlo
+### Speed bottleneck
 
 A Node contains a board and the next move to play.
 
 How to measure time gains:
 
-- for individual functions: small script using `timeit` (did not keep the script)
+- for individual functions: small script using `timeit`
+
+  ```python
+    def time_get_possible_moves():
+      board.get_possible_moves(args)
+    d = timeit.Timer(time_get_possible_moves)
+    print(min(d.repeat(20, 100000)))
+  ```
+
 - for global algos: `make cli ARG=timer`
+
+#### Board operations: save the board state as a dict of moves vs a list of list
+
+The board operations `Board.play` (with validity and if is win checks) and `Board.get_possible_moves`
+are called a lot of times in the algorithms, so any speed gain on these operations end up making a
+big difference on the final performance.
+
+I tested two different implementations to represent the board state.
+
+Internal representation of the board as a list of list:
+
+```python
+  board = [(Pawns.A, Colors.BLUE), None, None, None],
+            [None, None, None, None],
+            [None, None, None, None],
+            [None, None, None, None],
+```
+
+Internal representation of the board as a dictionnary of the moves:
+
+```python
+  board = {(0,0): ((Pawns.A, Colors.BLUE))}
+```
+
+The Montecarlo search is 2x faster with the move dict implementation.
 
 #### Optimize the move search by removing redundancies
 

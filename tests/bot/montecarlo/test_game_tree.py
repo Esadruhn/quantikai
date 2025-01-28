@@ -165,3 +165,12 @@ def test_get_best_play_depth_1(
 
 # TODO test get_move_stats
 # TODO test to_file and from_file
+def test_to_file(fixture_game_tree, tmp_path):
+    filepath = tmp_path / "game_tree.json"
+    fixture_game_tree.to_file(filepath)
+
+def test_from_file(fixture_game_tree, tmp_path):
+    filepath = tmp_path / "game_tree.json"
+    fixture_game_tree.to_file(filepath)
+    gm = GameTree.from_file(filepath)
+    # TODO check gm content

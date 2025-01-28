@@ -18,3 +18,8 @@ class Move:
             "pawn": self.pawn.name,
             "color": self.color.name,
         }
+    def to_compressed(self):
+        return [self.x, self.y, self.pawn.name, self.color.name]
+    @classmethod
+    def from_compressed(cls, body):
+        return cls(x=body[0],y=body[1],pawn=Pawns[body[2]],color=Colors[body[3]])

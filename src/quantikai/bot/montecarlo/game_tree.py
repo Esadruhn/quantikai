@@ -102,8 +102,8 @@ class GameTree:
     def to_file(self, path: pathlib.Path):
         game_tree_json = (
             {
-                "node": node.to_json(),
-                "montecarlo": asdict(montecarlo),
+                "node": node.to_compressed(),
+                "montecarlo": montecarlo.to_compressed(),
             }
             for node, montecarlo in self._game_tree.items()
         )
@@ -126,18 +126,8 @@ class GameTree:
         def object_hook(self, dct):
             if "node" in dct:
                 return (
-                    Node(
-                        board=tuple(
-                            tuple(None if item is None else tuple(item) for item in row)
-                            for row in dct["node"]["board"]
-                        ),
-                        move_to_play=(
-                            None
-                            if dct["node"]["move_to_play"] is None
-                            else Move(**dct["node"]["move_to_play"])
-                        ),
-                    ),
-                    MonteCarloScore(**dct["montecarlo"]),
+                    Node.from_compressed(dct["node"]),
+                    MonteCarloScore.from_compressed(dct["montecarlo"]),
                 )
             return dct
 

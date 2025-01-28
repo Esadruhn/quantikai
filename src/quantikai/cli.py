@@ -74,8 +74,8 @@ def timer():
     bot.get_method_times()
 
 
-@app.command()
-def montecarlo():
+@app.command("montecarlo")
+def generate_montecarlo_tree():
     bot.montecarlo.generate_tree(
         path=pathlib.Path("montecarlo_tree.json"),
         board=game.Board(),

@@ -16,7 +16,16 @@ class FrozenBoard:
             yield item
 
     def to_json(self):
-        return json.dumps(list(self._board))
+        return list(self._board)
+
+    def to_compressed(self):
+        return list(self._board)
+
+    @classmethod
+    def from_compressed(cls, body):
+        return cls(frozenset({
+            tuple(item) for item in body
+        }))
 
 
 class Board:
