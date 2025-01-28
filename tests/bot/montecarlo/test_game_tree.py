@@ -169,6 +169,7 @@ def test_to_file(fixture_game_tree, tmp_path):
     filepath = tmp_path / "game_tree.json"
     fixture_game_tree.to_file(filepath)
 
+
 def test_from_file(fixture_game_tree, tmp_path):
     filepath = tmp_path / "game_tree.json"
     fixture_game_tree.to_file(filepath)

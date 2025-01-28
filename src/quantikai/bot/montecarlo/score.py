@@ -35,7 +35,8 @@ class MonteCarloScore:
         return self.uct
 
     def to_compressed(self):
-        return [self.times_visited,self.score]
+        return [self.times_visited, self.score]
+
     @classmethod
     def from_compressed(cls, body):
         return cls(times_visited=body[0], score=body[1])

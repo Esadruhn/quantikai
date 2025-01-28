@@ -23,9 +23,7 @@ class FrozenBoard:
 
     @classmethod
     def from_compressed(cls, body):
-        return cls(frozenset({
-            tuple(item) for item in body
-        }))
+        return cls(frozenset({tuple(item) for item in body}))
 
 
 class Board:
