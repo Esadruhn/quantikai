@@ -82,7 +82,7 @@ def generate_montecarlo_tree():
         first_player=game.Player(color=game.Colors.BLUE),
         second_player=game.Player(color=game.Colors.RED),
         main_player_color=game.Colors.RED,
-        iterations=50000, # 50000 OK, 100000 = process killed
+        iterations=50000,  # 50000 OK, 100000 = process killed
         use_depth=True,
     )
     # Generate tree for the other player color

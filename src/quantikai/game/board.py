@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from typing import Generator
-import json
 
 from quantikai.game.exceptions import InvalidMoveError
 from quantikai.game.enums import Colors, Pawns
@@ -51,6 +50,9 @@ class Board:
                 raise
         else:
             self._board = dict()
+
+    def __len__(self):
+        return len(self._board)
 
     @classmethod
     def from_json(cls, body: list[list[tuple[str, str] | None]]):

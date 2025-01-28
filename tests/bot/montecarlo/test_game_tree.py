@@ -39,13 +39,13 @@ def test_add_no_parent(board):
     node = Node(board=board.get_frozen(), move_to_play=None)
     game_tree = GameTree()
     game_tree.add(node)
-    score = game_tree.compute_score(node, parent_node=None)
+    score = game_tree.compute_score(node)
     assert score == DEFAULT_UCT
 
 
 def test_add_parent(game_tree, parent_node, node):
 
-    score = game_tree.compute_score(node, parent_node=parent_node)
+    score = game_tree.compute_score(node)
     assert score == DEFAULT_UCT
 
 
@@ -53,7 +53,7 @@ def test_add_parent_visit(game_tree, parent_node, node):
 
     game_tree.update(parent_node, reward=1)
     game_tree.update(node, reward=1)
-    score = game_tree.compute_score(node, parent_node=parent_node)
+    score = game_tree.compute_score(node)
     assert score == 1.0
 
 
@@ -61,8 +61,8 @@ def test_best_move(board, game_tree, parent_node, node):
 
     game_tree.update(parent_node, reward=1)
     game_tree.update(node, reward=1)
-    game_tree.compute_score(parent_node, parent_node=None)
-    game_tree.compute_score(node, parent_node=parent_node)
+    game_tree.compute_score(parent_node)
+    game_tree.compute_score(node)
 
     best_move = game_tree.get_best_move(board.get_frozen())
     assert best_move == node.move_to_play
@@ -76,8 +76,8 @@ def test_get_best_play_not_visited(board, game_tree, parent_node, node):
 def test_get_best_play_max_depth(board, game_tree, parent_node, node):
     game_tree.update(parent_node, reward=1)
     game_tree.update(node, reward=1)
-    game_tree.compute_score(parent_node, parent_node=None)
-    game_tree.compute_score(node, parent_node=parent_node)
+    game_tree.compute_score(parent_node)
+    game_tree.compute_score(node)
 
     best_play = game_tree.get_best_play(board.get_frozen(), depth=16)
     assert best_play == [(node, MonteCarloScore(times_visited=1, score=1, uct=1.0))]
@@ -86,8 +86,8 @@ def test_get_best_play_max_depth(board, game_tree, parent_node, node):
 def test_get_best_play_depth_0(board, game_tree, parent_node, node):
     game_tree.update(parent_node, reward=1)
     game_tree.update(node, reward=1)
-    game_tree.compute_score(parent_node, parent_node=None)
-    game_tree.compute_score(node, parent_node=parent_node)
+    game_tree.compute_score(parent_node)
+    game_tree.compute_score(node)
 
     best_play = game_tree.get_best_play(board.get_frozen(), depth=0)
     assert best_play == [(node, MonteCarloScore(times_visited=1, score=1, uct=1.0))]
@@ -107,9 +107,9 @@ def test_get_best_play_depth_less(board, game_tree, parent_node, node):
     game_tree.update(node, reward=1)
     game_tree.update(extra_node, reward=1)
 
-    game_tree.compute_score(parent_node, parent_node=None)
-    game_tree.compute_score(node, parent_node=parent_node)
-    game_tree.compute_score(extra_node, parent_node=node)
+    game_tree.compute_score(parent_node)
+    game_tree.compute_score(node)
+    game_tree.compute_score(extra_node)
 
     best_play = game_tree.get_best_play(frozen, depth=0)
     assert best_play == [(node, MonteCarloScore(times_visited=1, score=1, uct=1.0))]
@@ -128,9 +128,9 @@ def test_get_best_play_depth_1(board, game_tree, parent_node, node):
     game_tree.update(node, reward=1)
     game_tree.update(extra_node, reward=1)
 
-    game_tree.compute_score(parent_node, parent_node=None)
-    game_tree.compute_score(node, parent_node=parent_node)
-    game_tree.compute_score(extra_node, parent_node=node)
+    game_tree.compute_score(parent_node)
+    game_tree.compute_score(node)
+    game_tree.compute_score(extra_node)
 
     best_play = game_tree.get_best_play(frozen, depth=1)
     assert best_play == [

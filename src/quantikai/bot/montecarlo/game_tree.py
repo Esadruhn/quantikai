@@ -22,16 +22,8 @@ class GameTree:
     def add(self, node: Node):
         self._game_tree.setdefault(node, MonteCarloScore())
 
-    def compute_score(self, node: Node, parent_node: Node | None):
-        # TODO - game tree should be method agnostic ie no knowledge of montecarlo
-        times_visited = 0
-        # two possibilities: root node has None for parent node
-        # and parent_node is not in game tree because this is a graph, not a tree
-        if parent_node in self._game_tree:
-            times_visited = self._game_tree[parent_node].times_visited
-        return self._game_tree[node].compute_score(
-            times_parent_visited=times_visited,
-        )
+    def compute_score(self, node: Node):
+        return self._game_tree[node].compute_score()
 
     def update(self, node: Node, reward: int):
         self._game_tree[node].times_visited += 1

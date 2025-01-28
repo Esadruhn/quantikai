@@ -1,7 +1,7 @@
 import pathlib
 
 from quantikai.game import Board, Player, Move
-from quantikai.bot import montecarlo
+from quantikai.bot import montecarlo, minmax
 
 
 def get_best_move(
@@ -11,10 +11,16 @@ def get_best_move(
     game_tree_file: pathlib.Path | None,
 ) -> Move:
 
-    best_move = montecarlo.get_best_move(
-        board=board,
-        current_player=current_player,
-        other_player=other_player,
-        game_tree_file=game_tree_file,
-    )
-    return best_move
+    if len(board) < 5:
+        return montecarlo.get_best_move(
+            board=board,
+            current_player=current_player,
+            other_player=other_player,
+            game_tree_file=game_tree_file,
+        )
+    else:
+        return minmax.get_best_move(
+            board=board,
+            current_player=current_player,
+            other_player=other_player,
+        )
