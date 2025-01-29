@@ -55,8 +55,8 @@ def init_test_values():
 
 def get_method_times():
 
-    n_iter = 5
-    n_repeat = 1
+    n_iter = 10
+    n_repeat = 5
 
     timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 

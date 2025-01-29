@@ -9,18 +9,11 @@ def get_best_move(
     current_player: Player,
     other_player: Player,
     game_tree_file: pathlib.Path | None,
-) -> Move:
+) -> Move | None:
 
-    if len(board) < 5:
-        return montecarlo.get_best_move(
-            board=board,
-            current_player=current_player,
-            other_player=other_player,
-            game_tree_file=game_tree_file,
-        )
-    else:
-        return minmax.get_best_move(
-            board=board,
-            current_player=current_player,
-            other_player=other_player,
-        )
+    return montecarlo.get_best_move(
+        board=board,
+        current_player=current_player,
+        other_player=other_player,
+        game_tree_file=game_tree_file,
+    )
