@@ -85,15 +85,6 @@ def generate_montecarlo_tree():
         iterations=50000,  # 50000 OK, 100000 = process killed
         use_depth=True,
     )
-    # Generate tree for the other player color
-    # bot.montecarlo.generate_tree(
-    #     path=pathlib.Path("montecarlo_tree_red.json"),
-    #     board=game.Board(),
-    #     current_player=game.Player(color=game.Colors.RED),
-    #     other_player=game.Player(color=game.Colors.BLUE),
-    #     iterations=50000,
-    #     use_depth=True,
-    # )
 
 
 if __name__ == "__main__":
