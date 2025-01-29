@@ -259,11 +259,16 @@ TODO
 
 #### Parallel computation
 
-Instead of `n_iter` sequential runs, we might imagine doing `n` runs in parallel for `n_iter` times. We would introduce a random element in the
-selection steps, so that the `n` runs are different. This is probably getting closer to a reinforcement learning setup, with a Markov decision process.
+For the Monte Carlo tree search, there are 3 methods of parallelization:
+
+- leaf parallelization
+- root (or single-run) parallelization
+- tree parallelization
 
 ## Sources
 
 1. [A Survey of MonteCarlo Search Methods](http://www.incompleteideas.net/609%20dropbox/other%20readings%20and%20resources/MCTS-survey.pdf)
-2. [AlphaZero](https://arxiv.org/pdf/1712.01815)
-3. [MuZero](https://arxiv.org/pdf/1911.08265)
+2. [Tristan Cazenave, Nicolas Jouandeau. On the Parallelization of UCT. Computer Games Workshop, Jun 2007, Amsterdam, Netherlands. ￿hal-02310186￿](https://hal.science/hal-02310186/document)
+3. [Parallel Monte-Carlo Tree Search](https://dke.maastrichtuniversity.nl/m.winands/documents/multithreadedMCTS2.pdf)
+4. [AlphaZero](https://arxiv.org/pdf/1712.01815)
+5. [MuZero](https://arxiv.org/pdf/1911.08265)
