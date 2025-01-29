@@ -47,6 +47,8 @@ To use the web interface, do:
         make devg
 ```
 
+FEATURE IN PROGRESS:
+
 To get a better bot (from the web interface), do:
 
 ```bash
@@ -246,7 +248,7 @@ Second try:
 - save only up to depth 3 included (for a sequence of play Blue(depth=0), Red(depth=1), Blue(depth=2), Red(depth=3)), produces a 81Mb file
 - at move 3, most nodes have not been visited
 
-So to get improvements with the pre-compute method, we need to exploit symetries and do more iterations.
+So to get improvements with the pre-compute method, we need to exploit symetries and possibly do more iterations.
 
 #### Node class: save children
 

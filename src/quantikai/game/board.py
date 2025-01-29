@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from typing import Generator
-import json
 
 from quantikai.game.exceptions import InvalidMoveError
 from quantikai.game.enums import Colors, Pawns
@@ -52,6 +51,9 @@ class Board:
         else:
             self._board = dict()
 
+    def __len__(self):
+        return len(self._board)
+
     @classmethod
     def from_json(cls, body: list[list[tuple[str, str] | None]]):
         return cls(
@@ -79,8 +81,9 @@ class Board:
             for row_nb in range(self._size)
         ]
 
-    def play(self, move: Move):
-        self._check_move_is_valid(move)
+    def play(self, move: Move, strict: bool = True):
+        if strict:
+            self._check_move_is_valid(move)
         self._board[(move.x, move.y)] = (move.pawn, move.color)
         return self._move_is_a_win(move.x, move.y)
 
@@ -121,9 +124,7 @@ class Board:
                         pass
         return False
 
-    def get_possible_moves(
-        self, pawns: list[Pawns], color: Colors, optimize=False
-    ) -> set[Move]:
+    def get_possible_moves(self, pawns: list[Pawns], color: Colors, optimize=False):
         """_summary_
 
         Args:
@@ -134,68 +135,68 @@ class Board:
         Returns:
             set[Move]: _description_
         """
-        if optimize:
-            # Case 1: No pawn on the board
-            if len(self._board) == 0:
-                # Only need to check for one pawn and one section minus one cell because of symmetry
-                # Actually I am not even sure the first move matters
-                return {
-                    Move(0, 0, Pawns.A, color),
-                    Move(0, 1, Pawns.A, color),
-                    Move(1, 1, Pawns.A, color),
+        moves = set()
+        # Case 1: No pawn on the board
+        if optimize and len(self._board) == 0:
+            # Only need to check for one pawn and one section minus one cell because of symmetry
+            # Actually I am not even sure the first move matters
+            moves = {
+                (0, 0, Pawns.A, color),
+                (0, 1, Pawns.A, color),
+                (1, 1, Pawns.A, color),
+            }
+        # Case 2: 1 pawn on the board
+        # Diagonal symmetry: both sections next to the played section are the same and in opposite section 2 cells are
+        # the same
+        # Pawn: either play the same pawn or a different one. If different, does not matter which one
+        elif optimize and len(self._board) == 1:
+            (bx, by), (bpawn, _) = list(self._board.items())[0]
+            other_pawn = [p for p in Pawns if p != bpawn][0]
+            moves = (
+                {
+                    # other pawn, same section
+                    (i, j, other_pawn, color)
+                    for (i, j) in self._get_section_elements(bx, by)
+                    if (i, j) != (bx, by)
                 }
-            # Case 2: 1 pawn on the board
-            # Diagonal symmetry: both sections next to the played section are the same and in opposite section 2 cells are
-            # the same
-            # Pawn: either play the same pawn or a different one. If different, does not matter which one
-            if len(self._board) == 1:
-                (bx, by), (bpawn, _) = list(self._board.items())[0]
-                other_pawn = [p for p in Pawns if p != bpawn][0]
-                return (
-                    {
-                        # other pawn, same section
-                        Move(i, j, other_pawn, color)
-                        for (i, j) in self._get_section_elements(bx, by)
-                        if (i, j) != (bx, by)
-                    }
-                    | {
-                        # other pawn, adjacent section
-                        Move(i, j, other_pawn, color)
-                        for (i, j) in self._get_section_elements((bx + 2) % 4, by)
-                    }
-                    | {
-                        # same pawn, adjacent section (only 2 possible positions)
-                        Move(i, j, bpawn, color)
-                        for (i, j) in self._get_section_elements((bx + 2) % 4, by)
-                        if i != bx and j != by
-                    }
-                    | {
-                        # same or other pawn, opposite section
-                        Move(i, j, p, color)
-                        for p in [bpawn, other_pawn]
-                        for i, j in self._get_section_elements(
-                            (bx + 2) % 4, (by + 2) % 4
-                        )
-                    }
-                )
-        # Get all possible moves
-        moves: set = {
-            (i, j, p, color)
-            for i in range(self._size)
-            for j in range(self._size)
-            for p in pawns
-        }
-        for (bx, by), (bpawn, bcolor) in self._board.items():
-            for pawn in pawns:
-                moves.discard((bx, by, pawn, color))
-            if bcolor != color:
-                for idx in range(self._size):
-                    moves.discard((idx, by, bpawn, color))
-                    moves.discard((bx, idx, bpawn, color))
-                for i, j in self._get_section_elements(bx, by):
-                    moves.discard((i, j, bpawn, color))
-        # Optimization: from 90s to 59s by using tuples instead of Move in the previous steps
-        return {Move(*item) for item in moves}
+                | {
+                    # other pawn, adjacent section
+                    (i, j, other_pawn, color)
+                    for (i, j) in self._get_section_elements((bx + 2) % 4, by)
+                }
+                | {
+                    # same pawn, adjacent section (only 2 possible positions)
+                    (i, j, bpawn, color)
+                    for (i, j) in self._get_section_elements((bx + 2) % 4, by)
+                    if i != bx and j != by
+                }
+                | {
+                    # same or other pawn, opposite section
+                    (i, j, p, color)
+                    for p in [bpawn, other_pawn]
+                    for i, j in self._get_section_elements((bx + 2) % 4, (by + 2) % 4)
+                }
+            )
+        else:
+            # Get all possible moves
+            moves: set = {
+                (i, j, p, color)
+                for i in range(self._size)
+                for j in range(self._size)
+                for p in pawns
+            }
+            for (bx, by), (bpawn, bcolor) in self._board.items():
+                for pawn in pawns:
+                    moves.discard((bx, by, pawn, color))
+                if bcolor != color:
+                    for idx in range(self._size):
+                        moves.discard((idx, by, bpawn, color))
+                        moves.discard((bx, idx, bpawn, color))
+                    for i, j in self._get_section_elements(bx, by):
+                        moves.discard((i, j, bpawn, color))
+            # Optimization: 30% speed-up using tuples instead of Move in the previous step
+        for item in moves:
+            yield Move(*item)
 
     def get_frozen(self) -> FrozenBoard:
         return FrozenBoard(

@@ -96,6 +96,7 @@ function botTurn() {
 function onClickCell(x, y) {
   const hasCheckedPawn = document.querySelector('input[name="pawn-select"]:checked') !== null
   if (!hasCheckedPawn) {
+    errorMsg('Please select a pawn.')
     throw new Error('Please select a pawn.')
   }
   const pawn = document.querySelector('input[name="pawn-select"]:checked').getAttribute('val')

@@ -231,7 +231,7 @@ def test_get_possible_moves():
         }
     )
     moves = board.get_possible_moves([Pawns.A], color=Colors.BLUE)
-    assert moves == {
+    assert set(moves) == {
         Move(1, 2, Pawns.A, Colors.BLUE),
         Move(1, 3, Pawns.A, Colors.BLUE),
         Move(2, 0, Pawns.A, Colors.BLUE),
@@ -267,7 +267,7 @@ def test_get_possible_moves_pawns():
         Move(2, 0, Pawns.B, Colors.BLUE),
         Move(2, 1, Pawns.B, Colors.BLUE),
     }
-    assert moves == a_moves | b_moves
+    assert set(moves) == a_moves | b_moves
 
 
 def test_get_possible_move_edge_case():
@@ -289,7 +289,7 @@ def test_get_possible_move_edge_case():
     board.print()
     move = (3, 0, Pawns.D, Colors.BLUE)
     moves = board.get_possible_moves([Pawns.D], Colors.BLUE)
-    assert move not in moves
+    assert move not in set(moves)
 
 
 def test_get_possible_moves_optimize_empty_board():
@@ -297,7 +297,7 @@ def test_get_possible_moves_optimize_empty_board():
     moves = board.get_possible_moves(
         pawns=list(Pawns), color=Colors.BLUE, optimize=True
     )
-    assert moves == {
+    assert set(moves) == {
         Move(0, 0, Pawns.A, Colors.BLUE),
         Move(0, 1, Pawns.A, Colors.BLUE),
         Move(1, 1, Pawns.A, Colors.BLUE),
@@ -307,8 +307,8 @@ def test_get_possible_moves_optimize_empty_board():
 def test_get_possible_moves_optimize_one():
     board = Board()
     board.play(Move(0, 0, Pawns.A, Colors.RED))
-    moves = board.get_possible_moves(
-        pawns=list(Pawns), color=Colors.BLUE, optimize=True
+    moves = set(
+        board.get_possible_moves(pawns=list(Pawns), color=Colors.BLUE, optimize=True)
     )
     same_pawn_moves = {
         Move(2, 1, Pawns.A, Colors.BLUE),
@@ -341,8 +341,8 @@ def test_get_possible_moves_optimize_one():
 
 def test_get_possible_moves_optimize_one_section_1():
     board = Board({(0, 1): (Pawns.A, Colors.RED)})
-    moves = board.get_possible_moves(
-        pawns=list(Pawns), color=Colors.BLUE, optimize=True
+    moves = set(
+        board.get_possible_moves(pawns=list(Pawns), color=Colors.BLUE, optimize=True)
     )
     same_pawn_moves = {
         Move(2, 0, Pawns.A, Colors.BLUE),

@@ -6,14 +6,13 @@ from quantikai.bot.montecarlo.node import Node
 from quantikai.bot.montecarlo.score import MonteCarloScore
 from quantikai.bot.montecarlo.game_tree import GameTree
 
-ITERATIONS = 5000
+ITERATIONS = 10000
 USE_DEPTH = True
 GAME_TREE_FILE_MAX_DEPTH = 3
 
 
 def _explore_node(
     game_tree: GameTree,
-    parent_node: Node,
     board: Board,
     player: Player,
     all_possible_moves: bool,
@@ -35,26 +34,25 @@ def _explore_node(
         optimize=not all_possible_moves,
     )
 
-    # end case: the parent node is a leaf node
-    if len(possible_moves) == 0:
-        return True, None
-
     # Choose the node with the best trade-off exploration/exploitation
     node_to_explore = None
     uct = None
+    frozen_board = board.get_frozen()
     for pos_mov in possible_moves:
-        node = Node(board=board.get_frozen(), move_to_play=pos_mov)
+        node = Node(board=frozen_board, move_to_play=pos_mov)
         game_tree.add(node)
-        new_uct = game_tree.compute_score(
-            node=node,
-            parent_node=parent_node,
-        )
+        new_uct = game_tree.compute_score(node=node)
         if uct is None or new_uct >= uct:
             node_to_explore = node
             uct = new_uct
 
+    if node_to_explore is None:
+        # it means that len(possible_moves) == 0
+        # end case: the parent node is a leaf node
+        return True, None
+
     # Play the chosen move and evaluate: leaf node or keep going
-    is_win = board.play(node_to_explore.move_to_play)
+    is_win = board.play(node_to_explore.move_to_play, strict=False)
     player.remove(node_to_explore.move_to_play.pawn)
 
     return is_win, node_to_explore
@@ -106,7 +104,6 @@ def _montecarlo_algo(
             player = tmp_player if is_current else tmp_other
             game_is_over, node_to_explore = _explore_node(
                 game_tree=game_tree,
-                parent_node=parent_node,
                 board=tmp_board,
                 player=player,
                 all_possible_moves=all_possible_moves,
@@ -116,7 +113,6 @@ def _montecarlo_algo(
             if game_is_over:
                 break
             depth_reward -= 1
-            parent_node = node_to_explore
 
         # Backtrack the scores and iterations
         reward = None
