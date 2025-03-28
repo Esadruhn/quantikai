@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 DEFAULT_UCT: float = 1000000
 # higher value to increase exploration, lower for exploitation
-UCT_CST = 1.5
+UCT_CST = 2
 
 
 @dataclass
@@ -28,7 +28,9 @@ class MonteCarloScore:
         if self.times_visited == 0:
             self.uct = DEFAULT_UCT
         else:
-            self.uct = (self.score / self.times_visited) + 2 * uct_cst * math.sqrt(
+            self.uct = (
+                self.score / self.times_visited
+            ) + 2 * uct_cst * math.sqrt(
                 2 * math.log(self.times_parent_visited) / self.times_visited
             )
         self.times_parent_visited += 1

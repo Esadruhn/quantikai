@@ -1,13 +1,13 @@
 """Compare the execution time of each method"""
 
-import datetime
 import copy
-import pathlib
+import datetime
 import json
+import pathlib
 import timeit
 
 from quantikai.bot import minmax, montecarlo
-from quantikai.game import Board, Pawns, Colors, Player, Move
+from quantikai.game import Board, Colors, Move, Pawns, Player
 
 
 def init_test_values():
@@ -55,8 +55,8 @@ def init_test_values():
 
 def get_method_times():
 
-    n_iter = 10
-    n_repeat = 5
+    n_iter = 5
+    n_repeat = 1
 
     timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 
@@ -71,7 +71,8 @@ def get_method_times():
     result_file = pathlib.Path("bot_algo_time_" + timestamp + ".json")
     current_color = Colors.BLUE
     times["montecarlo"]["args"] = {
-        "iterations": 10000,
+        "num_process": 5,
+        "iterations": 2000,
         "use_depth": True,
     }
     times["minmax"]["args"] = {}
@@ -88,7 +89,9 @@ def get_method_times():
                     **times["minmax"]["args"]
                 )
             )
-            times["minmax"][idx] = round(min(d.repeat(n_repeat, n_iter)) / n_iter, 2)
+            times["minmax"][idx] = round(
+                min(d.repeat(n_repeat, n_iter)) / n_iter, 2
+            )
 
         d = timeit.Timer(
             lambda: montecarlo.get_best_move(
@@ -98,7 +101,9 @@ def get_method_times():
                 **times["montecarlo"]["args"]
             )
         )
-        times["montecarlo"][idx] = round(min(d.repeat(n_repeat, n_iter)) / n_iter, 2)
+        times["montecarlo"][idx] = round(
+            min(d.repeat(n_repeat, n_iter)) / n_iter, 2
+        )
 
         # Update the measures at every iteration
         result_file.write_text(json.dumps(times, indent=2))

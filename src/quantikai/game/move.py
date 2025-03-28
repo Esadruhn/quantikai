@@ -10,7 +10,6 @@ class Move:
     pawn: Pawns
     color: Colors
 
-    # TODO
     def to_json(self):
         return {
             "x": self.x,
@@ -26,4 +25,6 @@ class Move:
     def from_compressed(cls, body):
         if body is None:
             return None
-        return cls(x=body[0], y=body[1], pawn=Pawns[body[2]], color=Colors[body[3]])
+        return cls(
+            x=body[0], y=body[1], pawn=Pawns[body[2]], color=Colors[body[3]]
+        )

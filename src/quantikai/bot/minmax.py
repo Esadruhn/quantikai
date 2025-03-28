@@ -1,6 +1,6 @@
 import copy
 
-from quantikai.game import Board, Player, Colors, Move
+from quantikai.game import Board, Colors, Move, Player
 
 
 def get_best_move(

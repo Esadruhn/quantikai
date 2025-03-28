@@ -1,9 +1,9 @@
 import pytest
 
 from quantikai.bot.montecarlo.main import GameTree, MonteCarloScore
-from quantikai.bot.montecarlo.score import DEFAULT_UCT
-from quantikai.game import Board, Pawns, Colors, Move, FrozenBoard
 from quantikai.bot.montecarlo.node import Node
+from quantikai.bot.montecarlo.score import DEFAULT_UCT
+from quantikai.game import Board, Colors, Move, Pawns
 
 
 @pytest.fixture
@@ -18,7 +18,9 @@ def parent_node(board):
 
 @pytest.fixture
 def node(board):
-    return Node(board=board.get_frozen(), move_to_play=Move(2, 2, Pawns.A, Colors.RED))
+    return Node(
+        board=board.get_frozen(), move_to_play=Move(2, 2, Pawns.A, Colors.RED)
+    )
 
 
 @pytest.fixture
@@ -83,7 +85,10 @@ def test_get_best_play_max_depth(board, game_tree, parent_node, node):
         (
             node,
             MonteCarloScore(
-                times_visited=1, times_parent_visited=1, score=1, uct=DEFAULT_UCT
+                times_visited=1,
+                times_parent_visited=1,
+                score=1,
+                uct=DEFAULT_UCT,
             ),
         )
     ]
@@ -99,7 +104,10 @@ def test_get_best_play_depth_0(board, game_tree, parent_node, node):
         (
             node,
             MonteCarloScore(
-                times_visited=1, times_parent_visited=1, score=1, uct=DEFAULT_UCT
+                times_visited=1,
+                times_parent_visited=1,
+                score=1,
+                uct=DEFAULT_UCT,
             ),
         )
     ]
@@ -127,7 +135,10 @@ def test_get_best_play_depth_less(board, game_tree, parent_node, node):
         (
             node,
             MonteCarloScore(
-                times_visited=1, times_parent_visited=1, score=1, uct=DEFAULT_UCT
+                times_visited=1,
+                times_parent_visited=1,
+                score=1,
+                uct=DEFAULT_UCT,
             ),
         )
     ]
@@ -154,13 +165,19 @@ def test_get_best_play_depth_1(board, game_tree, parent_node, node):
         (
             node,
             MonteCarloScore(
-                times_visited=1, times_parent_visited=1, score=1, uct=DEFAULT_UCT
+                times_visited=1,
+                times_parent_visited=1,
+                score=1,
+                uct=DEFAULT_UCT,
             ),
         ),
         (
             extra_node,
             MonteCarloScore(
-                times_visited=1, times_parent_visited=1, score=1, uct=DEFAULT_UCT
+                times_visited=1,
+                times_parent_visited=1,
+                score=1,
+                uct=DEFAULT_UCT,
             ),
         ),
     ]
@@ -170,30 +187,25 @@ def test_get_best_play_depth_1(board, game_tree, parent_node, node):
 
 
 def test_to_file(game_tree, tmp_path):
-    filepath = tmp_path / "game_tree.json"
-    game_tree.to_file(filepath, player_color=Colors.BLUE)
+    game_tree.to_file(tmp_path, player_color=Colors.BLUE)
 
 
 def test_from_file_red(game_tree, tmp_path, board):
-    filepath = tmp_path / "game_tree.json"
-    game_tree.to_file(filepath, player_color=Colors.RED)
-    gm: GameTree = GameTree.from_file(filepath)
+    game_tree.to_file(tmp_path, player_color=Colors.RED)
+    gm: GameTree = GameTree.from_file(
+        tmp_path, depth=1, player_color=Colors.RED
+    )
     assert gm._game_tree == {
         Node(
-            board=board.get_frozen(), move_to_play=Move(2, 2, Pawns.A, Colors.RED)
+            board=board.get_frozen(),
+            move_to_play=Move(2, 2, Pawns.A, Colors.RED),
         ): MonteCarloScore(
             times_visited=0, times_parent_visited=0, score=0, uct=DEFAULT_UCT
         ),
         Node(
-            board=board.get_frozen(), move_to_play=Move(2, 3, Pawns.A, Colors.RED)
+            board=board.get_frozen(),
+            move_to_play=Move(2, 3, Pawns.A, Colors.RED),
         ): MonteCarloScore(
             times_visited=0, times_parent_visited=0, score=0, uct=DEFAULT_UCT
         ),
     }
-
-
-def test_from_file_blue(game_tree, tmp_path):
-    filepath = tmp_path / "game_tree.json"
-    game_tree.to_file(filepath, player_color=Colors.BLUE)
-    gm = GameTree.from_file(filepath)
-    assert len(gm._game_tree) == 0

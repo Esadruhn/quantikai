@@ -1,4 +1,4 @@
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 
 from quantikai.game import FrozenBoard, Move
 
@@ -17,14 +17,20 @@ class Node:
         return {
             "board": self.board.to_json(),
             "move_to_play": (
-                None if self.move_to_play is None else self.move_to_play.to_json()
+                None
+                if self.move_to_play is None
+                else self.move_to_play.to_json()
             ),
         }
 
     def to_compressed(self):
         return [
             self.board.to_compressed(),
-            None if self.move_to_play is None else self.move_to_play.to_compressed(),
+            (
+                None
+                if self.move_to_play is None
+                else self.move_to_play.to_compressed()
+            ),
         ]
 
     @classmethod

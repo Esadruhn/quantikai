@@ -1,20 +1,20 @@
-from flask import Flask, render_template, request, session, jsonify
 import pathlib
 
-from quantikai import game, bot
+from flask import Flask, jsonify, render_template, request, session
+
+from quantikai import bot, game
 from quantikai.bot import montecarlo
 
 PLAYER_WIN_MSG = "Congratulations, you win!"
 BOT_WIN_MSG = "The bot wins!"
-# TODO - not using the file
-MONTECARLO_FILE = pathlib.Path("montecarlo_tree_blue.json")
+MONTECARLO_FILE = pathlib.Path.cwd() / "montecarlo"
 
 
 def create_app():
     app = Flask(
         __name__,
-        template_folder=pathlib.Path("web/templates"),
-        static_folder=pathlib.Path("web/static"),
+        template_folder=pathlib.Path("web") / "templates",
+        static_folder=pathlib.Path("web") / "static",
     )
     app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 
@@ -72,7 +72,9 @@ def create_app():
             board,
             bot_player,
             human_player,
-            game_tree_file=MONTECARLO_FILE if MONTECARLO_FILE.exists() else None,
+            game_tree_folder=(
+                MONTECARLO_FILE if MONTECARLO_FILE.exists() else None
+            ),
         )
         if move is None:
             game_is_over = True
@@ -81,7 +83,8 @@ def create_app():
             game_is_over = board.play(move)
             bot_player.remove(move.pawn)
             if game_is_over or (
-                not game_is_over and not board.have_possible_move(human_player.color)
+                not game_is_over
+                and not board.have_possible_move(human_player.color)
             ):
                 game_is_over = True
                 win_message = BOT_WIN_MSG
@@ -108,14 +111,18 @@ def create_app():
                 human_player,
                 bot_player,
                 depth=depth,
-                game_tree_file=MONTECARLO_FILE if MONTECARLO_FILE.exists() else None,
+                game_tree_folder=(
+                    MONTECARLO_FILE if MONTECARLO_FILE.exists() else None
+                ),
             )
         return montecarlo.get_move_stats(
             board,
             bot_player,
             human_player,
             depth=depth,
-            game_tree_file=MONTECARLO_FILE if MONTECARLO_FILE.exists() else None,
+            game_tree_folder=(
+                MONTECARLO_FILE if MONTECARLO_FILE.exists() else None
+            ),
         )
 
     @app.post("/gameprediction")
@@ -129,14 +136,19 @@ def create_app():
                 board,
                 human_player,
                 bot_player,
-                game_tree_file=MONTECARLO_FILE if MONTECARLO_FILE.exists() else None,
+                game_tree_folder=(
+                    MONTECARLO_FILE if MONTECARLO_FILE.exists() else None
+                ),
             )
-        best_play = montecarlo.get_best_play(
-            board,
-            bot_player,
-            human_player,
-            game_tree_file=MONTECARLO_FILE if MONTECARLO_FILE.exists() else None,
-        )
+        else:
+            best_play = montecarlo.get_best_play(
+                board,
+                bot_player,
+                human_player,
+                game_tree_folder=(
+                    MONTECARLO_FILE if MONTECARLO_FILE.exists() else None
+                ),
+            )
         return [(node.to_json(), mscore) for node, mscore in best_play]
 
     return app
