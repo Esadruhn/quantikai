@@ -46,22 +46,14 @@ def rules():
         """
     )
     board = game.Board(
-        board=[
-            [
-                (game.Pawns.B, game.Colors.RED),
-                (game.Pawns.A, game.Colors.RED),
-                (game.Pawns.B, game.Colors.RED),
-                None,
-            ],
-            [None, None, None, None],
-            [
-                None,
-                None,
-                (game.Pawns.A, game.Colors.BLUE),
-                (game.Pawns.B, game.Colors.BLUE),
-            ],
-            [None, None, None, (game.Pawns.D, game.Colors.BLUE)],
-        ]
+        {
+            (0, 0): (game.Pawns.B, game.Colors.RED),
+            (0, 1): (game.Pawns.A, game.Colors.RED),
+            (0, 2): (game.Pawns.B, game.Colors.RED),
+            (2, 2): (game.Pawns.A, game.Colors.BLUE),
+            (2, 3): (game.Pawns.B, game.Colors.BLUE),
+            (3, 3): (game.Pawns.D, game.Colors.BLUE),
+        }
     )
     board.print()
     print(
