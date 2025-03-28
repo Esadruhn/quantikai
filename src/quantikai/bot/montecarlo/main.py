@@ -158,6 +158,15 @@ def _montecarlo_algo(
     Returns:
         GameTree: _description_
     """
+    if num_process == 1:
+        return _one_process_algo(
+            board=board,
+            current_player=current_player,
+            other_player=other_player,
+            iterations=iterations,
+            use_depth=use_depth,
+            all_possible_moves=all_possible_moves,
+        )
     manager = multiprocessing.Manager()
     multiprocess_list = manager.list()
     jobs = list()
